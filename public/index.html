@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Echoes of the Infinite — An independent electronic music label releasing music that transcends genre and hypnotizes the senses." />
+  <meta property="og:title" content="Echoes of the Infinite" />
+  <meta property="og:description" content="Sound without boundaries. The label home of BURKO." />
+  <meta property="og:image" content="/assets/images/labyrinth-ep.jpg" />
+  <title>Echoes of the Infinite</title>
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <!-- Preload critical assets -->
+  <link rel="preload" href="/assets/fonts/CormorantGaramond-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="/assets/fonts/Strong.ttf" as="font" type="font/ttf" crossorigin />
+</head>
+<body>
+
+  <!-- SVG Filters for grain/glow effects -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+    <defs>
+      <filter id="grain-filter" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="linearRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blend"/>
+        <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+      </filter>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <filter id="glow-strong">
+        <feGaussianBlur stdDeviation="12" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <filter id="distort">
+        <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="3" result="turbulence" seed="2"/>
+        <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Noise grain overlay -->
+  <div id="grain-overlay" aria-hidden="true"></div>
+
+  <!-- Scanline overlay -->
+  <div id="scanlines" aria-hidden="true"></div>
+
+  <!-- Custom cursor -->
+  <div id="cursor" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav id="nav">
+    <a href="#hero" class="nav-logo magnetic">
+      <img src="/assets/images/logo-icon-blue.svg" alt="EOTI" width="32" height="32" />
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about" class="nav-link magnetic">The Label</a></li>
+      <li><a href="#release" class="nav-link magnetic">Releases</a></li>
+      <li><a href="#artist" class="nav-link magnetic">Artists</a></li>
+      <li><a href="#contact" class="nav-link magnetic">Contact</a></li>
+    </ul>
+    <button class="nav-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu">
+    <ul>
+      <li><a href="#about" class="mobile-link">The Label</a></li>
+      <li><a href="#release" class="mobile-link">Releases</a></li>
+      <li><a href="#artist" class="mobile-link">Artists</a></li>
+      <li><a href="#contact" class="mobile-link">Contact</a></li>
+    </ul>
+  </div>
+
+  <!-- ============================================================
+       SECTION 1: HERO
+  ============================================================ -->
+  <section id="hero">
+    <!-- Three.js WebGL canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Hero vignette -->
+    <div class="hero-vignette"></div>
+
+    <!-- Hero content -->
+    <div class="hero-content">
+      <div class="hero-logo-wrap" id="heroLogo">
+        <img
+          src="/assets/images/logo-primary-main.svg"
+          alt="Echoes of the Infinite"
+          class="hero-logo"
+          id="mainLogo"
+        />
+        <p class="burko-imprint" id="burkoImprint">a BURKO imprint</p>
+      </div>
+
+      <div class="hero-tagline-wrap" id="heroTagline">
+        <p class="hero-tagline">
+          <span class="tagline-word">Welcome</span>
+          <span class="tagline-word">to</span>
+          <span class="tagline-word">the</span>
+          <span class="tagline-word tagline-accent">sonic</span>
+          <span class="tagline-word tagline-accent">unknown.</span>
+        </p>
+      </div>
+
+      <div class="hero-cta-row" id="heroCta">
+        <a href="#release" class="btn-primary magnetic-btn">
+          <span class="btn-text">First Transmission</span>
+          <span class="btn-glow"></span>
+        </a>
+        <a href="#about" class="btn-ghost magnetic-btn">
+          <span class="btn-text">Explore the Label</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-indicator" id="scrollIndicator">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+
+    <!-- Floating orbs in hero -->
+    <div class="orb orb-1" aria-hidden="true"></div>
+    <div class="orb orb-2" aria-hidden="true"></div>
+    <div class="orb orb-3" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 2: ABOUT THE LABEL
+  ============================================================ -->
+  <section id="about" class="section-about">
+    <div class="about-bg-video">
+      <video autoplay muted loop playsinline id="ambientVideo">
+        <source src="/assets/video/ambient.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div class="about-overlay"></div>
+
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-left">
+          <div class="large-text-block reveal-up">
+            <span class="large-letter glitch-text" data-text="E">E</span>
+            <span class="large-letter glitch-text" data-text="C">C</span>
+            <span class="large-letter glitch-text" data-text="H">H</span>
+            <span class="large-letter glitch-text" data-text="O">O</span>
+            <span class="large-letter glitch-text" data-text="E">E</span>
+            <span class="large-letter glitch-text" data-text="S">S</span>
+          </div>
+          <div class="large-text-block reveal-up">
+            <span class="large-letter large-letter--outline glitch-text" data-text="O">O</span>
+            <span class="large-letter large-letter--outline glitch-text" data-text="F">F</span>
+          </div>
+          <div class="large-text-block reveal-up">
+            <span class="large-letter large-letter--accent glitch-text" data-text="T">T</span>
+            <span class="large-letter large-letter--accent glitch-text" data-text="H">H</span>
+            <span class="large-letter large-letter--accent glitch-text" data-text="E">E</span>
+          </div>
+        </div>
+
+        <div class="about-right">
+          <div class="about-icon-wrap reveal-up">
+            <img src="/assets/images/logo-icon-blue.svg" alt="" class="about-icon float-anim" aria-hidden="true" />
+          </div>
+          <div class="about-text reveal-up">
+            <span class="label-text">Est. 2026 · Independent</span>
+            <h2 class="section-title">The Infinite</h2>
+            <p class="body-text">
+              Some music is written. Some is remembered.
+              Echoes of the Infinite lives in the space between hypnotic rhythms
+              and emotional depth, where darker, late-night energy meets something
+              more timeless. The music here echoes through dimensions while leaving
+              behind a distinct memory. As the imprint label of BURKO, Echoes of
+              the Infinite reflects a world shaped by the sonic unknown.
+            </p>
+            <p class="body-text">
+              Echoes of the Infinite is the sonic representation of the feeling of
+              "Deja vu." Rooted in BURKO's process of capturing song ideas from
+              his dreams and translating them into reality, the label explores the
+              deeper, darker, more emotional edges of electronic music. Tracks here
+              are designed to leave a lasting imprint, but the defining factor is a
+              feeling, not a genre.
+            </p>
+            <p class="body-text">
+              At its core, the label is about curation. Its intention is to build a
+              cohesive world where soundscapes, emotional depth, and visual identity
+              all intersect. Echoes of the Infinite reflects BURKO's evolving sonic
+              identity while opening the door to like-minded artists drawn to the
+              same darker, esoteric sonic space.
+            </p>
+            <div class="about-stats reveal-up">
+              <div class="stat">
+                <span class="stat-number" data-count="1">01</span>
+                <span class="stat-label">Catalog</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number">∞</span>
+                <span class="stat-label">Dimensions</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" data-count="2026">2026</span>
+                <span class="stat-label">Founded</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorative floating elements -->
+    <div class="float-element fe-1" aria-hidden="true"></div>
+    <div class="float-element fe-2" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 3: FIRST RELEASE — BURKO: LABYRINTH EP
+  ============================================================ -->
+  <section id="release" class="section-release">
+    <div class="release-bg-texture"></div>
+
+    <div class="container">
+      <!-- Section header -->
+      <div class="release-header reveal-up">
+        <span class="catalog-badge">EOTI001</span>
+        <p class="section-eyebrow">First Transmission</p>
+      </div>
+
+      <div class="release-grid">
+        <!-- Artwork -->
+        <div class="release-artwork-col reveal-left">
+          <div class="artwork-frame" id="artworkFrame">
+            <div class="artwork-glow-ring"></div>
+            <div class="artwork-inner" id="artworkTilt">
+              <img
+                src="/assets/images/labyrinth-ep.jpg"
+                alt="BURKO — Labyrinth EP"
+                class="artwork-img"
+              />
+              <div class="artwork-overlay"></div>
+              <div class="artwork-shine"></div>
+            </div>
+            <div class="artwork-reflection"></div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="release-info-col reveal-right">
+          <div class="release-meta">
+            <span class="release-artist">BURKO</span>
+            <h2 class="release-title">
+              <span class="release-title-word">Labyrinth</span>
+              <span class="release-title-word accent-text">EP</span>
+            </h2>
+            <div class="release-divider">
+              <span class="divider-line"></span>
+              <img src="/assets/images/logo-icon-blue.svg" alt="" class="divider-icon" aria-hidden="true" />
+              <span class="divider-line"></span>
+            </div>
+          </div>
+
+          <p class="body-text release-desc">
+            BURKO's 'Labyrinth EP' sets the tone for Echoes of the Infinite as
+            the label's first release, leaning into the darker tones he has brought
+            through his music over the past 6 years of releases. With music
+            previously on ARMADA, Ultra, mau5trap, and Odd One Out, this EP
+            solidifies his new record label as a home for his darker-leaning records.
+          </p>
+          <p class="body-text release-desc">
+            The title track reveals a high-energy, psy-leaning rhythm with a heavy
+            bass line, while 'Delusion' and 'Planet Nine' manage to not let up on
+            pumping energy. Perfect for your 3am journey, the EP takes you further
+            down the 'Nightrider' playlist rabbit hole that has already been home
+            to multiple of BURKO's previous releases.
+          </p>
+
+          <div class="release-details">
+            <div class="detail-item">
+              <span class="detail-label">Label</span>
+              <span class="detail-value">Echoes of the Infinite</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Catalog</span>
+              <span class="detail-value">EOTI001</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Genre</span>
+              <span class="detail-value">Melodic Psy Tech</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status</span>
+              <span class="detail-value status-coming">Coming Soon</span>
+            </div>
+          </div>
+
+          <div class="release-ctas">
+            <a href="#contact" class="btn-primary magnetic-btn">
+              <span class="btn-text">Get Notified</span>
+              <span class="btn-glow"></span>
+            </a>
+            <a href="https://www.beatport.com" target="_blank" rel="noopener" class="btn-platform magnetic-btn">
+              <span class="btn-text">Beatport</span>
+            </a>
+          </div>
+
+          <!-- Waveform visualization (decorative) -->
+          <div class="waveform" aria-hidden="true">
+            <div class="waveform-bars" id="waveformBars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating particles specific to release section -->
+    <div class="release-particles" id="releaseParticles" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 4: THE ARTIST — BURKO
+  ============================================================ -->
+  <section id="artist" class="section-artist">
+    <div class="artist-bg-mesh" aria-hidden="true"></div>
+
+    <div class="container">
+      <div class="artist-grid">
+        <div class="artist-info reveal-left">
+          <span class="section-eyebrow reveal-up">The Artist</span>
+
+          <div class="artist-logo-wrap reveal-up">
+            <img src="/assets/images/burko-logo.svg" alt="BURKO" class="artist-logo" />
+          </div>
+
+          <p class="body-text reveal-up">
+            BURKO is building a future defined by melodic psy tech, marked by emotional depth and captivating energy. As his discography expands, his unique production style and collaborations continue to earn support from icons like Deadmau5, David Guetta, Vintage Culture, Lane 8, and YOTTO setting the stage for his rise in the global electronic scene.
+          </p>
+          <p class="body-text reveal-up">
+            His record label, Echoes of the Infinite, is the sonic representation of the feeling of "Déjà vu." Rooted in BURKO's process of capturing song ideas from his dreams and translating them into reality, the label explores the deeper, darker, more emotional edges of electronic music. Tracks here are designed to leave a lasting imprint, but the defining factor is a feeling, not a genre.
+          </p>
+          <p class="body-text reveal-up">
+            At its core, the label is about curation. Its intention is to build a cohesive world where soundscapes, emotional depth, and visual identity all intersect. Echoes of the Infinite reflects BURKO's evolving sonic identity while opening the door to like-minded artists drawn to the same darker, esoteric sonic space.
+          </p>
+
+          <!-- Classy artist website discovery link -->
+          <a href="https://burkomusic.com" target="_blank" rel="noopener" class="burko-site-link reveal-up">
+            <span class="burko-site-label">Artist Website</span>
+            <span class="burko-site-url">burkomusic.com
+              <svg class="burko-site-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </a>
+
+          <div class="artist-links reveal-up">
+            <a href="https://www.instagram.com/echoesoftheinfinite_ofc" target="_blank" rel="noopener" class="artist-link magnetic" aria-label="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+              Instagram
+            </a>
+            <a href="#" class="artist-link magnetic" aria-label="SoundCloud">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 16.5C1.8 16.5 1 15.6 1 14.5c0-1 .7-1.9 1.7-2.1.1-2.8 2.4-5 5.3-5 .5 0 1 .1 1.4.2C10.1 6.1 11.5 5 13.2 5c2.5 0 4.5 2 4.5 4.5 0 .2 0 .4-.1.6C19.4 10.5 21 12 21 13.8c0 1.5-1.2 2.7-2.7 2.7H3z"/>
+              </svg>
+              SoundCloud
+            </a>
+            <a href="https://www.beatport.com" target="_blank" rel="noopener" class="artist-link magnetic" aria-label="Beatport">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+              </svg>
+              Beatport
+            </a>
+          </div>
+        </div>
+
+        <div class="artist-visual reveal-right">
+          <div class="artist-symbol-wrap">
+            <!-- Pulsing background glow layers -->
+            <div class="artist-symbol-glow"></div>
+            <div class="artist-pulse-ring ap-1" aria-hidden="true"></div>
+            <div class="artist-pulse-ring ap-2" aria-hidden="true"></div>
+            <div class="artist-pulse-ring ap-3" aria-hidden="true"></div>
+
+            <!-- Chromatic aberration layers (offset ghost copies) -->
+            <img src="/assets/images/logo-icon-blue.svg" alt="" class="artist-symbol-ghost ghost-red"  aria-hidden="true" />
+            <img src="/assets/images/logo-icon-blue.svg" alt="" class="artist-symbol-ghost ghost-cyan" aria-hidden="true" />
+
+            <!-- Main spinning icon -->
+            <img
+              src="/assets/images/logo-icon-blue.svg"
+              alt=""
+              class="artist-symbol spin-trippy"
+              aria-hidden="true"
+            />
+
+            <!-- Counter-spinning hue-shifted layer -->
+            <img
+              src="/assets/images/logo-icon-blue.svg"
+              alt=""
+              class="artist-symbol-layer spin-reverse"
+              aria-hidden="true"
+            />
+
+            <!-- Orbit system -->
+            <div class="orbit-ring orbit-ring-1"></div>
+            <div class="orbit-ring orbit-ring-2"></div>
+            <div class="orbit-ring orbit-ring-3"></div>
+            <div class="orbit-dot orbit-dot-1"></div>
+            <div class="orbit-dot orbit-dot-2"></div>
+            <div class="orbit-dot orbit-dot-3"></div>
+            <div class="orbit-dot orbit-dot-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 5: SUBMIT / CONTACT
+  ============================================================ -->
+  <section id="contact" class="section-contact">
+    <div class="container contact-inner">
+      <div class="contact-top reveal-up">
+        <img src="/assets/images/logo-icon-blue.svg" alt="" class="contact-icon float-anim" aria-hidden="true" />
+        <span class="section-eyebrow">Connect With the Infinite</span>
+        <h2 class="section-title">Stay in the Signal</h2>
+        <p class="body-text contact-body">
+          Be the first to hear new transmissions. Submit your demos,
+          reach out for bookings, or simply enter the frequency.
+        </p>
+      </div>
+
+      <div class="contact-grid contact-grid--two reveal-up">
+        <!-- Newsletter / Stay Notified -->
+        <div class="contact-card glass-panel">
+          <h3 class="card-title">Stay in the Signal</h3>
+          <p class="card-text">Be the first to hear new transmissions. Drop your details and we'll reach you when something stirs.</p>
+          <form class="notify-form" id="notifyForm" novalidate>
+            <!-- formsubmit.co hidden config -->
+            <input type="hidden" name="_subject" value="New Signal — Echoes of the Infinite">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_template" value="table">
+            <input type="text"   name="_honey"   style="display:none" tabindex="-1" autocomplete="off">
+
+            <div class="form-field">
+              <input
+                type="text"
+                id="nameInput"
+                name="name"
+                placeholder="Your Name"
+                class="form-input"
+                required
+                autocomplete="name"
+              />
+              <label for="nameInput" class="form-label">Your Name</label>
+            </div>
+            <div class="form-field">
+              <input
+                type="email"
+                id="emailInput"
+                name="email"
+                placeholder="your@email.com"
+                class="form-input"
+                required
+                autocomplete="email"
+              />
+              <label for="emailInput" class="form-label">Email Address</label>
+            </div>
+            <button type="submit" class="btn-primary magnetic-btn form-submit">
+              <span class="btn-text">Enter the Frequency</span>
+              <span class="btn-glow"></span>
+            </button>
+          </form>
+          <div class="form-success" id="formSuccess" aria-live="polite">
+            <span class="success-icon">∞</span>
+            <p>You're in the signal. Watch for transmissions.</p>
+          </div>
+        </div>
+
+        <!-- Combined: Demos / Bookings / Press -->
+        <div class="contact-card glass-panel">
+          <h3 class="card-title">Get in Touch</h3>
+          <div class="contact-sub-section">
+            <p class="contact-sub-label">Submit Demos</p>
+            <p class="card-text">We listen to everything. Send your music for consideration on the Echoes of the Infinite catalog.</p>
+          </div>
+          <div class="contact-sub-section">
+            <p class="contact-sub-label">Bookings &amp; Press</p>
+            <p class="card-text">For artist bookings, press inquiries, and licensing, reach out directly.</p>
+          </div>
+          <a href="mailto:echoesoftheinfinite.ofc@gmail.com" class="btn-ghost magnetic-btn">
+            <span class="btn-text">echoesoftheinfinite.ofc@gmail.com</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorative -->
+    <div class="contact-orb-1 orb" aria-hidden="true"></div>
+    <div class="contact-orb-2 orb" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer id="footer">
+    <div class="footer-inner container">
+      <div class="footer-logo-wrap">
+        <img src="/assets/images/logo-primary-main.svg" alt="Echoes of the Infinite" class="footer-logo" />
+      </div>
+
+      <div class="footer-links">
+        <a href="#about" class="footer-link">The Label</a>
+        <a href="#release" class="footer-link">Releases</a>
+        <a href="#artist" class="footer-link">Artists</a>
+        <a href="#contact" class="footer-link">Contact</a>
+      </div>
+
+      <div class="footer-social">
+        <a href="https://www.instagram.com/echoesoftheinfinite_ofc" target="_blank" rel="noopener" class="social-link magnetic" aria-label="Instagram">IG</a>
+        <a href="#" class="social-link magnetic" aria-label="SoundCloud">SC</a>
+        <a href="https://www.beatport.com" target="_blank" rel="noopener" class="social-link magnetic" aria-label="Beatport">BP</a>
+        <a href="#" class="social-link magnetic" aria-label="Spotify">SP</a>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copy">&copy; 2026 Echoes of the Infinite. All rights reserved.</p>
+        <a href="https://burkomusic.com" target="_blank" rel="noopener" class="footer-artist-credit">
+          A BURKO imprint &mdash; <span>burkomusic.com</span>
+        </a>
+        <a href="http://www.echoesoftheinfinite.live" class="footer-domain">echoesoftheinfinite.live</a>
+      </div>
+    </div>
+
+    <!-- Footer particle strip -->
+    <div class="footer-shimmer" aria-hidden="true"></div>
+  </footer>
+
+  <!-- Scripts: Three.js, GSAP, then our main -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
