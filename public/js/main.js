@@ -1579,11 +1579,11 @@
       }
       if (isIOS) {
         // ── iOS lightweight path — no WebGL, no canvas noise ────
-        // CSS green flash via .ee-ios, GSAP text reveal, save button shown
         overlay.classList.add('ee-active', 'ee-ios');
         playEEAudio();
         setTimeout(function() { spitOutText(content); }, 600);
-        autoDismissTimer = setTimeout(dismissOverlay, 15000);
+        // Transition to party screen after reading time — no auto-dismiss after
+        autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 7000);
         return;
       }
 
@@ -1619,8 +1619,40 @@
       // ── 1600ms: BH already slowing, text spit out begins
       setTimeout(function() { spitOutText(content); }, 1600);
 
-      // ── 10000ms: auto-dismiss ─────────────────────────────────
-      autoDismissTimer = setTimeout(dismissOverlay, 10000);
+      // ── 9000ms: transition to party screen (no auto-dismiss after that)
+      autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 9000);
+    }
+
+    // ── Party screen — replaces unlock screen, no auto-dismiss ──
+    function showPartyScreen(content) {
+      if (!content) return;
+      // Fade out Screen 1
+      gsap.to(content, { opacity: 0, duration: 0.7, ease: 'power2.in',
+        onComplete: function() {
+          // Swap content to party screen
+          content.innerHTML =
+            '<p class="ee-party-eyebrow">You are invited.</p>' +
+            '<p class="ee-party-title">Label Launch<br>Party</p>' +
+            '<p class="ee-party-sub">BURKO presents: EOTI 001</p>' +
+            '<p class="ee-party-date">June 13 &nbsp;·&nbsp; San Diego<br><span class="ee-party-tba">Location TBA</span></p>' +
+            '<a class="ee-tickets-btn" href="https://shotgun.live/en/events/burko-presents-eoti1"' +
+            ' target="_blank" rel="noopener noreferrer">Get Tickets</a>' +
+            '<button class="ee-back">[ back to site ]</button>';
+
+          // Wire up back button
+          content.querySelector('.ee-back').addEventListener('click', dismissOverlay);
+
+          // Override child opacity:0 from CSS
+          var kids = content.querySelectorAll(
+            '.ee-party-eyebrow,.ee-party-title,.ee-party-sub,.ee-party-date,.ee-tickets-btn,.ee-back'
+          );
+          gsap.set(kids, { opacity: 1 });
+
+          // Fade Screen 2 in
+          gsap.set(content, { opacity: 0 });
+          gsap.to(content, { opacity: 1, duration: 0.9, ease: 'power2.out' });
+        }
+      });
     }
 
     // ── Dismiss ───────────────────────────────────────────────
@@ -1634,21 +1666,28 @@
       var content  = overlay.querySelector('.ee-content');
 
       if (typeof gsap !== 'undefined' && content) {
-        // Suck text back into the black hole (infall phase 1 reversed)
-        gsap.to(content, {
-          opacity: 0, scaleX: 0.04, scaleY: 0.16,
-          rotation: 495, filter: 'brightness(0) sepia(1) blur(4px)',
-          duration: 0.55, ease: 'power3.in',
-          onComplete: function() {
-            content.classList.remove('revealed');
-            overlay.classList.remove('ee-active');
-            stopEERenderer();
-            _hero.resume && _hero.resume();
-            active = false;
-          },
-        });
+        var cleanUp = function() {
+          content.classList.remove('revealed');
+          overlay.classList.remove('ee-active', 'ee-ios');
+          stopEERenderer();
+          _hero.resume && _hero.resume();
+          active = false;
+        };
+        if (isIOS) {
+          // Simple fade out on iOS — no heavy filter/rotation animation
+          gsap.to(content, { opacity: 0, duration: 0.4, ease: 'power2.in',
+            onComplete: cleanUp });
+        } else {
+          // Suck text back into the black hole (desktop)
+          gsap.to(content, {
+            opacity: 0, scaleX: 0.04, scaleY: 0.16,
+            rotation: 495, filter: 'brightness(0) sepia(1) blur(4px)',
+            duration: 0.55, ease: 'power3.in',
+            onComplete: cleanUp,
+          });
+        }
       } else {
-        overlay.classList.remove('ee-active');
+        overlay.classList.remove('ee-active', 'ee-ios');
         stopEERenderer();
         _hero.resume && _hero.resume();
         active = false;

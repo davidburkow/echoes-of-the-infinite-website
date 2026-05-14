@@ -1864,6 +1864,92 @@ footer {
 }
 .ee-dismiss:hover { color: rgba(244, 245, 236, 0.55); }
 
+/* ── Easter Egg — Party Screen ────────────────────────────── */
+.ee-party-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(113, 112, 243, 0.8);
+  text-shadow: 0 0 14px rgba(113, 112, 243, 0.5);
+  margin-bottom: 1.2rem;
+  opacity: 0;
+}
+.ee-party-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 4.2rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: var(--alabaster);
+  text-shadow:
+    0 0 40px rgba(113, 112, 243, 0.45),
+    0 2px 16px rgba(0, 0, 3, 1);
+  margin-bottom: 1.4rem;
+  opacity: 0;
+}
+.ee-party-sub {
+  font-family: var(--font-body);
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 245, 236, 0.55);
+  margin-bottom: 1.4rem;
+  opacity: 0;
+}
+.ee-party-date {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  letter-spacing: 0.12em;
+  color: rgba(244, 245, 236, 0.85);
+  text-shadow: 0 2px 10px rgba(0, 0, 3, 0.9);
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  opacity: 0;
+}
+.ee-party-tba {
+  font-size: 0.8em;
+  color: rgba(244, 245, 236, 0.45);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+.ee-tickets-btn {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: clamp(0.75rem, 1.8vw, 0.9rem);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--blue);
+  padding: 1rem 2.5rem;
+  border-radius: 2px;
+  text-decoration: none;
+  margin-bottom: 1.8rem;
+  opacity: 0;
+  transition: background 0.25s, transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ee-tickets-btn:hover {
+  background: var(--alabaster);
+  transform: translateY(-2px);
+}
+.ee-tickets-btn:active { transform: translateY(0); }
+.ee-back {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(244, 245, 236, 0.2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: color 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ee-back:hover { color: rgba(244, 245, 236, 0.5); }
+
 /* iOS save button — shown instead of auto-download on iPhone/iPad */
 .ee-save-btn {
   display: block;
