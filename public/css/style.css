@@ -1864,67 +1864,54 @@ footer {
 }
 .ee-dismiss:hover { color: rgba(244, 245, 236, 0.55); }
 
-/* iOS save link — shown instead of auto-download on iPhone/iPad */
-.ee-save {
+/* iOS save button — shown instead of auto-download on iPhone/iPad */
+.ee-save-btn {
   display: block;
   font-family: var(--font-display);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(113, 112, 243, 0.85);
-  text-shadow: 0 0 12px rgba(113, 112, 243, 0.6), 0 1px 6px rgba(0, 0, 3, 0.9);
-  text-decoration: none;
-  margin-bottom: 0.5rem;
+  color: rgba(113, 112, 243, 0.9);
+  text-shadow: 0 0 14px rgba(113, 112, 243, 0.7), 0 1px 6px rgba(0, 0, 3, 0.9);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
   opacity: 0;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.3s;
+  transition: color 0.2s;
 }
-.ee-save:active { color: rgba(244, 245, 236, 0.9); }
+.ee-save-btn:active { color: rgba(244, 245, 236, 1); }
 
 /* =============================================================
-   iOS — Lightweight hero background (no WebGL)
+   iOS — Lightweight hero background (no WebGL, no rotation)
 ============================================================= */
 #hero-ios-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Static layered gradients — zero animation cost */
   background:
-    radial-gradient(ellipse 70% 60% at 50% 42%,
-      rgba(55, 55, 140, 0.28) 0%,
-      rgba(20, 10, 45, 0.55) 45%,
-      var(--black) 75%);
-  overflow: hidden;
+    radial-gradient(ellipse 55% 50% at 50% 42%,
+      rgba(85, 85, 159, 0.18) 0%,
+      rgba(40, 20, 80, 0.30) 40%,
+      transparent 72%),
+    radial-gradient(ellipse 90% 80% at 50% 55%,
+      rgba(20, 10, 45, 0.50) 0%,
+      var(--black) 70%);
 }
-/* Concentric rings — mimics the nebula ripple effect */
-#hero-ios-bg::before {
-  content: '';
-  position: absolute;
-  inset: -60%;
-  background: repeating-radial-gradient(
-    circle at 50% 50%,
-    transparent 0,
-    transparent 55px,
-    rgba(85, 85, 159, 0.07) 55px,
-    rgba(85, 85, 159, 0.07) 57px
-  );
-  animation: ios-rings 30s linear infinite;
-  will-change: transform;
-}
-/* Soft pulsing glow at center */
+/* Single slow-pulsing glow — opacity only, no transform (GPU-friendly) */
 #hero-ios-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 45% 45% at 50% 42%,
-    rgba(85, 85, 159, 0.12) 0%, transparent 65%);
-  animation: ios-pulse 7s ease-in-out infinite;
-}
-@keyframes ios-rings {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  background: radial-gradient(ellipse 40% 38% at 50% 40%,
+    rgba(85, 85, 159, 0.14) 0%, transparent 60%);
+  animation: ios-pulse 8s ease-in-out infinite;
 }
 @keyframes ios-pulse {
-  0%, 100% { opacity: 0.4; }
+  0%, 100% { opacity: 0.35; }
   50%       { opacity: 1; }
 }
 

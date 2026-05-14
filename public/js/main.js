@@ -46,13 +46,16 @@
     initScrollProgress();
     initAlbumTilt();
     initMagneticButtons();
-    initWaveform();
-    initReleaseParticles();
     initForm();
     initMobileMenu();
-    initParallax();
-    initBurkoImprint();
     initEasterEgg();
+    // Skip canvas/animation-heavy features on iOS
+    if (!isIOS) {
+      initWaveform();
+      initReleaseParticles();
+      initParallax();
+      initBurkoImprint();
+    }
   });
 
   /* ===========================================================
@@ -1194,29 +1197,23 @@
     });
 
     // ── Touch trigger (mobile / iOS) ──────────────────────────
-    // 5 taps anywhere in the upper 75% of the hero section within 3s
-    var tapCount  = 0;
-    var tapTimer  = null;
-    var heroEl    = document.getElementById('hero');
-    if (heroEl) {
-      heroEl.addEventListener('touchend', function(e) {
-        if (active) return;
-        // Ignore taps in the bottom 25% (CTA buttons area)
-        var rect  = heroEl.getBoundingClientRect();
-        var touch = e.changedTouches[0];
-        if ((touch.clientY - rect.top) / rect.height > 0.75) return;
-
-        tapCount++;
+    // 5 taps anywhere on the screen within 3 seconds
+    var tapCount = 0;
+    var tapTimer = null;
+    document.addEventListener('touchend', function(e) {
+      if (active) return;
+      // Ignore taps on the easter egg overlay itself
+      if (document.getElementById('easter-egg-overlay') &&
+          document.getElementById('easter-egg-overlay').classList.contains('ee-active')) return;
+      tapCount++;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(function() { tapCount = 0; }, 3000);
+      if (tapCount >= 5) {
+        tapCount = 0;
         clearTimeout(tapTimer);
-        tapTimer = setTimeout(function() { tapCount = 0; }, 3000);
-
-        if (tapCount >= 5) {
-          tapCount = 0;
-          clearTimeout(tapTimer);
-          fireEasterEgg();
-        }
-      }, { passive: true });
-    }
+        fireEasterEgg();
+      }
+    }, { passive: true });
 
     // ── Play the .aif sound file ──────────────────────────────
     function playEEAudio() {
@@ -1261,6 +1258,7 @@
         '<p class="ee-artist">BURKO</p>' +
         '<p class="ee-track">Delusion</p>' +
         '<p class="ee-coming">coming soon on Echoes of the Infinite.</p>' +
+        (isIOS ? '<button class="ee-save-btn">[ save file ]</button>' : '') +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 
       overlay.appendChild(glCanvas);
@@ -1269,6 +1267,15 @@
       document.body.appendChild(overlay);
 
       content.querySelector('.ee-dismiss').addEventListener('click', dismissOverlay);
+
+      // iOS save button — must call share directly from tap (gesture context)
+      if (isIOS) {
+        content.querySelector('.ee-save-btn').addEventListener('touchend', function(e) {
+          e.stopPropagation();
+          iosShareFile(FILE_URL, DL_NAME);
+        }, { passive: true });
+      }
+
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) dismissOverlay();
       });
@@ -1468,14 +1475,14 @@
         content.style.opacity = '1';
         content.style.transform = 'none';
         // Also override individual child CSS opacity: 0
-        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save,.ee-dismiss');
+        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
         kids.forEach(function(k) { k.style.opacity = '1'; });
         return;
       }
 
       // Each child element has opacity:0 in CSS — override so the parent
       // animation controls overall visibility (children must be fully opaque).
-      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save,.ee-dismiss');
+      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
       gsap.set(kids, { opacity: 1 });
 
       // filter order must stay brightness() sepia() blur() throughout
@@ -1557,13 +1564,11 @@
       }
       if (isIOS) {
         // ── iOS lightweight path — no WebGL, no canvas noise ────
+        // CSS green flash via .ee-ios, GSAP text reveal, save button shown
         overlay.classList.add('ee-active', 'ee-ios');
         playEEAudio();
-        // CSS green flash handled by .ee-ios class
-        setTimeout(function() { spitOutText(content); }, 800);
-        // iOS Share Sheet — native "Save to Files" prompt
-        setTimeout(function() { iosShareFile(FILE_URL, DL_NAME); }, 1200);
-        autoDismissTimer = setTimeout(dismissOverlay, 12000);
+        setTimeout(function() { spitOutText(content); }, 600);
+        autoDismissTimer = setTimeout(dismissOverlay, 15000);
         return;
       }
 
