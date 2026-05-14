@@ -1880,3 +1880,67 @@ footer {
   transition: color 0.3s;
 }
 .ee-save:active { color: rgba(244, 245, 236, 0.9); }
+
+/* =============================================================
+   iOS — Lightweight hero background (no WebGL)
+============================================================= */
+#hero-ios-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 42%,
+      rgba(55, 55, 140, 0.28) 0%,
+      rgba(20, 10, 45, 0.55) 45%,
+      var(--black) 75%);
+  overflow: hidden;
+}
+/* Concentric rings — mimics the nebula ripple effect */
+#hero-ios-bg::before {
+  content: '';
+  position: absolute;
+  inset: -60%;
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    transparent 0,
+    transparent 55px,
+    rgba(85, 85, 159, 0.07) 55px,
+    rgba(85, 85, 159, 0.07) 57px
+  );
+  animation: ios-rings 30s linear infinite;
+  will-change: transform;
+}
+/* Soft pulsing glow at center */
+#hero-ios-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 45% 45% at 50% 42%,
+    rgba(85, 85, 159, 0.12) 0%, transparent 65%);
+  animation: ios-pulse 7s ease-in-out infinite;
+}
+@keyframes ios-rings {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes ios-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+/* =============================================================
+   iOS Easter Egg — CSS green flash overlay (no WebGL canvas)
+============================================================= */
+.ee-ios {
+  background: var(--black) !important;
+  animation: ios-ee-flash 1s ease-out forwards;
+}
+@keyframes ios-ee-flash {
+  0%   { background-color: rgba(0, 80, 10, 0.95); }
+  20%  { background-color: rgba(0, 40, 5, 0.97); }
+  60%  { background-color: rgba(0, 10, 2, 0.98); }
+  100% { background-color: rgba(0, 0, 3, 1); }
+}
+/* Hide WebGL + noise canvases on iOS easter egg */
+.ee-ios #ee-webgl,
+.ee-ios #ee-noise { display: none; }

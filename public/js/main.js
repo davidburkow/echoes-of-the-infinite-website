@@ -27,11 +27,19 @@
     fragSrc: null,   // GLSL fragment shader string
   };
 
+  // ── iOS detection (shared across all init functions) ─────────
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) document.documentElement.classList.add('ios');
+
   // ── Wait for DOM ─────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     initHeroReveal();
-    initWebGL();
-    initGrain();     // extra canvas grain layer
+    if (isIOS) {
+      initIOSHero();   // CSS animated background — no WebGL
+    } else {
+      initWebGL();
+      initGrain();     // extra canvas grain layer
+    }
     initCursor();
     initNav();
     initScrollReveal();
@@ -192,6 +200,21 @@
      Keplerian accretion disk with Doppler beaming,
      gravitational lensing of background stars.
   =========================================================== */
+  /* ===========================================================
+     iOS HERO — CSS-only animated background (no WebGL)
+  =========================================================== */
+  function initIOSHero() {
+    var hero = document.getElementById('hero');
+    if (!hero) return;
+    // Hide the WebGL canvas — not needed on iOS
+    var canvas = document.getElementById('webgl-canvas');
+    if (canvas) canvas.style.display = 'none';
+    // Add iOS bg div
+    var bg = document.createElement('div');
+    bg.id = 'hero-ios-bg';
+    hero.insertBefore(bg, hero.firstChild);
+  }
+
   function initWebGL() {
     if (typeof THREE === 'undefined') return;
 
@@ -1143,8 +1166,7 @@
     let   eeThreeRenderer = null;
     let   autoDismissTimer = null;
 
-    // iOS detection — download behaves differently on Safari/iOS
-    var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    // isIOS is declared at module level (top of IIFE)
 
     // ── Pre-fetch audio bytes on page load so playback is instant ─
     // Use WAV — universally supported by Web Audio API in all browsers.
@@ -1239,9 +1261,6 @@
         '<p class="ee-artist">BURKO</p>' +
         '<p class="ee-track">Delusion</p>' +
         '<p class="ee-coming">coming soon on Echoes of the Infinite.</p>' +
-        (isIOS
-          ? '<a class="ee-save" href="' + FILE_URL + '" target="_blank">[ tap &amp; hold to save file ]</a>'
-          : '') +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 
       overlay.appendChild(glCanvas);
@@ -1502,6 +1521,24 @@
     }
 
     // ── Main firing sequence ──────────────────────────────────
+    // ── iOS Share Sheet — triggers native "Save to Files" ────────
+    function iosShareFile(url, filename) {
+      fetch(url)
+        .then(function(r) { return r.blob(); })
+        .then(function(blob) {
+          var file = new File([blob], filename, { type: blob.type || 'audio/wav' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title: filename });
+          } else {
+            // Fallback: open file in new tab so user can long-press to save
+            window.open(url, '_blank');
+          }
+        })
+        .catch(function() {
+          window.open(url, '_blank');
+        });
+    }
+
     function fireEasterEgg() {
       active = true;
       buildOverlay();
@@ -1518,6 +1555,18 @@
       } else {
         content.style.opacity = '0';
       }
+      if (isIOS) {
+        // ── iOS lightweight path — no WebGL, no canvas noise ────
+        overlay.classList.add('ee-active', 'ee-ios');
+        playEEAudio();
+        // CSS green flash handled by .ee-ios class
+        setTimeout(function() { spitOutText(content); }, 800);
+        // iOS Share Sheet — native "Save to Files" prompt
+        setTimeout(function() { iosShareFile(FILE_URL, DL_NAME); }, 1200);
+        autoDismissTimer = setTimeout(dismissOverlay, 12000);
+        return;
+      }
+
       noiseEl.style.opacity = '1';
 
       // ── 0ms: hero pauses, overlay appears, BH starts, sound fires
@@ -1537,9 +1586,8 @@
       // ── 950ms: stop the noise draw loop ──────────────────────
       setTimeout(stopNoise, 950);
 
-      // ── 2500ms: download (desktop) / save link already in overlay (iOS)
+      // ── 2500ms: silent download ───────────────────────────────
       setTimeout(function() {
-        if (isIOS) return; // iOS: user uses the tap-and-hold link instead
         var a = document.createElement('a');
         a.href = FILE_URL; a.download = DL_NAME;
         a.style.display = 'none';
