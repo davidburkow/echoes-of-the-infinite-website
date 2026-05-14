@@ -207,7 +207,9 @@
       antialias: false,
       powerPreference: 'high-performance',
     });
-    const DPR = Math.min(window.devicePixelRatio, 1.5);
+    // Cap DPR lower on mobile/iOS for better performance
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const DPR = Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5);
     renderer.setPixelRatio(DPR);
     // Size against the canvas element so 100svh ≠ window.innerHeight
     // mismatches don't leave an uncovered strip at top/bottom.
@@ -1141,6 +1143,9 @@
     let   eeThreeRenderer = null;
     let   autoDismissTimer = null;
 
+    // iOS detection — download behaves differently on Safari/iOS
+    var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+
     // ── Pre-fetch audio bytes on page load so playback is instant ─
     // Use WAV — universally supported by Web Audio API in all browsers.
     // (The original .aif is Safari-only; WAV works everywhere.)
@@ -1165,6 +1170,31 @@
         if (active) dismissOverlay();
       }
     });
+
+    // ── Touch trigger (mobile / iOS) ──────────────────────────
+    // 5 taps anywhere in the upper 75% of the hero section within 3s
+    var tapCount  = 0;
+    var tapTimer  = null;
+    var heroEl    = document.getElementById('hero');
+    if (heroEl) {
+      heroEl.addEventListener('touchend', function(e) {
+        if (active) return;
+        // Ignore taps in the bottom 25% (CTA buttons area)
+        var rect  = heroEl.getBoundingClientRect();
+        var touch = e.changedTouches[0];
+        if ((touch.clientY - rect.top) / rect.height > 0.75) return;
+
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(function() { tapCount = 0; }, 3000);
+
+        if (tapCount >= 5) {
+          tapCount = 0;
+          clearTimeout(tapTimer);
+          fireEasterEgg();
+        }
+      }, { passive: true });
+    }
 
     // ── Play the .aif sound file ──────────────────────────────
     function playEEAudio() {
@@ -1209,6 +1239,9 @@
         '<p class="ee-artist">BURKO</p>' +
         '<p class="ee-track">Delusion</p>' +
         '<p class="ee-coming">coming soon on Echoes of the Infinite.</p>' +
+        (isIOS
+          ? '<a class="ee-save" href="' + FILE_URL + '" target="_blank">[ tap &amp; hold to save file ]</a>'
+          : '') +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 
       overlay.appendChild(glCanvas);
@@ -1416,14 +1449,14 @@
         content.style.opacity = '1';
         content.style.transform = 'none';
         // Also override individual child CSS opacity: 0
-        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-dismiss');
+        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save,.ee-dismiss');
         kids.forEach(function(k) { k.style.opacity = '1'; });
         return;
       }
 
       // Each child element has opacity:0 in CSS — override so the parent
       // animation controls overall visibility (children must be fully opaque).
-      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-dismiss');
+      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save,.ee-dismiss');
       gsap.set(kids, { opacity: 1 });
 
       // filter order must stay brightness() sepia() blur() throughout
@@ -1504,8 +1537,9 @@
       // ── 950ms: stop the noise draw loop ──────────────────────
       setTimeout(stopNoise, 950);
 
-      // ── 2500ms: silent download ───────────────────────────────
+      // ── 2500ms: download (desktop) / save link already in overlay (iOS)
       setTimeout(function() {
+        if (isIOS) return; // iOS: user uses the tap-and-hold link instead
         var a = document.createElement('a');
         a.href = FILE_URL; a.download = DL_NAME;
         a.style.display = 'none';

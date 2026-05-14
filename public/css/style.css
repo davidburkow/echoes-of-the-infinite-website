@@ -48,6 +48,8 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  /* iOS: prevent font size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
 }
 body {
   background-color: var(--black);
@@ -57,11 +59,25 @@ body {
   line-height: 1.7;
   overflow-x: hidden;
   cursor: none;
+  /* iOS: crisp font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 img, video { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 ul { list-style: none; }
 button { background: none; border: none; cursor: none; font-family: inherit; }
+
+/* ── iOS Touch ────────────────────────────────────────────── */
+/* Remove tap highlight flash on all interactive elements */
+a, button, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+/* On touch devices: restore default cursor and hide custom cursor */
+@media (hover: none) and (pointer: coarse) {
+  body, button { cursor: auto; }
+  #cursor, #cursor-ring, #cursor-dot { display: none !important; }
+}
 
 /* ── Scrollbar ────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 3px; }
@@ -223,7 +239,8 @@ body.cursor-hover #cursor-ring {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem var(--gutter);
+  /* iOS: respect notch / Dynamic Island */
+  padding: calc(2rem + env(safe-area-inset-top)) var(--gutter) 2rem;
   /* Explicit transparent background prevents undefined repaint state */
   background: rgba(0, 0, 3, 0);
   /* Promote to its own GPU compositing layer so the WebGL canvas
@@ -454,6 +471,8 @@ body.cursor-hover #cursor-ring {
   width: 100%;
   height: 100%;
   z-index: 0;
+  /* iOS: allow page scrolling over canvas, prevent touch conflicts */
+  touch-action: pan-y;
 }
 
 .hero-vignette {
@@ -1490,7 +1509,8 @@ body.cursor-hover #cursor-ring {
 footer {
   position: relative;
   border-top: 1px solid rgba(113, 112, 243, 0.1);
-  padding-block: 4rem 2rem;
+  /* iOS: respect home indicator at bottom */
+  padding-block: 4rem calc(2rem + env(safe-area-inset-bottom));
   overflow: hidden;
 }
 
@@ -1843,3 +1863,20 @@ footer {
   opacity: 0;
 }
 .ee-dismiss:hover { color: rgba(244, 245, 236, 0.55); }
+
+/* iOS save link — shown instead of auto-download on iPhone/iPad */
+.ee-save {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(113, 112, 243, 0.85);
+  text-shadow: 0 0 12px rgba(113, 112, 243, 0.6), 0 1px 6px rgba(0, 0, 3, 0.9);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.3s;
+}
+.ee-save:active { color: rgba(244, 245, 236, 0.9); }
