@@ -27,8 +27,12 @@
     fragSrc: null,   // GLSL fragment shader string
   };
 
-  // ── iOS detection (shared across all init functions) ─────────
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  // ── iOS/touch detection ───────────────────────────────────────
+  // Also catches iPadOS 13+ which reports as desktop Mac but is touch-only
+  const isIOS = (
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  ) && !window.MSStream;
   if (isIOS) document.documentElement.classList.add('ios');
 
   // ── Wait for DOM ─────────────────────────────────────────────
@@ -1485,6 +1489,13 @@
       var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
       gsap.set(kids, { opacity: 1 });
 
+      // iOS: simple fade-in — no filters/rotation/extreme scale (too heavy for mobile GPU)
+      if (isIOS) {
+        gsap.set(content, { opacity: 0, scale: 1, rotation: 0 });
+        gsap.to(content, { opacity: 1, duration: 0.7, ease: 'power2.out' });
+        return;
+      }
+
       // filter order must stay brightness() sepia() blur() throughout
       gsap.set(content, {
         opacity:  0,
@@ -1554,11 +1565,15 @@
       var content  = overlay.querySelector('.ee-content');
       var noiseEl  = document.getElementById('ee-noise');
 
-      // Reset content state
+      // Reset content state — simple hidden start on iOS, full extreme on desktop
       content.classList.remove('revealed');
       if (typeof gsap !== 'undefined') {
-        gsap.set(content, { opacity: 0, scaleX: 0.04, scaleY: 0.16,
-          rotation: 480, filter: 'brightness(0) sepia(1) blur(4px)' });
+        if (isIOS) {
+          gsap.set(content, { opacity: 0, scale: 1, rotation: 0, filter: 'none' });
+        } else {
+          gsap.set(content, { opacity: 0, scaleX: 0.04, scaleY: 0.16,
+            rotation: 480, filter: 'brightness(0) sepia(1) blur(4px)' });
+        }
       } else {
         content.style.opacity = '0';
       }
