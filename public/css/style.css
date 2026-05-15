@@ -252,9 +252,10 @@ body.cursor-hover #cursor-ring {
               backdrop-filter 0.4s;
 }
 #nav.scrolled {
-  background: rgba(0, 0, 3, 0.75);
-  backdrop-filter: blur(24px) saturate(1.5);
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  /* Solid background instead of backdrop-filter — backdrop-filter over
+     a WebGL canvas causes a persistent horizontal flicker artifact in
+     Chrome. The visual difference is imperceptible at this opacity. */
+  background: rgba(0, 0, 3, 0.88);
   padding-block: 1rem;
   border-bottom: 1px solid rgba(113, 112, 243, 0.12);
 }
