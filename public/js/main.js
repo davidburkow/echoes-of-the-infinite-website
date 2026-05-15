@@ -237,13 +237,17 @@
       antialias: false,
       powerPreference: 'high-performance',
     });
+    // Render at 50% resolution — browser upscales via CSS.
+    // Cuts pixel shader work by 75% (quarter the pixels). The black hole
+    // is an abstract effect so the slight softness is imperceptible.
+    const RENDER_SCALE = 0.5;
     const DPR = 1.0;
     renderer.setPixelRatio(DPR);
-    // Size against the canvas element so 100svh ≠ window.innerHeight
-    // mismatches don't leave an uncovered strip at top/bottom.
-    // Pass false so Three.js does NOT overwrite our CSS width/height with
-    // hardcoded pixel values — that would break the 100svh canvas fill.
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    renderer.setSize(
+      Math.floor(canvas.clientWidth  * RENDER_SCALE),
+      Math.floor(canvas.clientHeight * RENDER_SCALE),
+      false   // don't overwrite CSS — canvas CSS stays 100%/100%
+    );
     renderer.setClearColor(0x000003, 1);
 
     // ── Scene & Camera (fullscreen orthographic quad) ─────────
@@ -452,7 +456,10 @@
     const uniforms = {
       uTime:       { value: 8.5 },   // pre-seed: starts in a developed state
       uMouse:      { value: new THREE.Vector2(0, 0) },
-      uResolution: { value: new THREE.Vector2(canvas.clientWidth * DPR, canvas.clientHeight * DPR) },
+      uResolution: { value: new THREE.Vector2(
+        Math.floor(canvas.clientWidth  * RENDER_SCALE),
+        Math.floor(canvas.clientHeight * RENDER_SCALE)
+      ) },
     };
 
     // ── Fullscreen quad ───────────────────────────────────────
@@ -476,14 +483,16 @@
 
     // ── Resize ────────────────────────────────────────────────
     window.addEventListener('resize', () => {
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-      uniforms.uResolution.value.set(canvas.clientWidth * DPR, canvas.clientHeight * DPR);
+      const rw = Math.floor(canvas.clientWidth  * RENDER_SCALE);
+      const rh = Math.floor(canvas.clientHeight * RENDER_SCALE);
+      renderer.setSize(rw, rh, false);
+      uniforms.uResolution.value.set(rw, rh);
     });
 
     // ── Animation loop ────────────────────────────────────────
-    // Cap hero render to 30 fps — halves GPU work, nebula is slow-moving
-    // so the lower frame rate is imperceptible.
-    const HERO_FPS   = 30;
+    // Cap hero render to 20 fps — the black hole moves slowly enough
+    // that 20fps is visually indistinguishable from 60fps.
+    const HERO_FPS   = 20;
     const HERO_FRAME = 1000 / HERO_FPS;
     let lastHeroTime = 0;
     let frameId;
@@ -502,12 +511,21 @@
     }
     animate(0);
 
-    // Pause when hero leaves viewport (performance)
+    // Pause when tab is hidden — stops GPU work entirely when user switches tabs
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(frameId); frameId = null;
+      } else {
+        if (!frameId) animate(0);
+      }
+    });
+
+    // Pause when hero leaves viewport (user has scrolled past it)
     const heroEl = document.getElementById('hero');
     if (heroEl && 'IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         entries.forEach(e => {
-          if (e.isIntersecting) { if (!frameId) animate(); }
+          if (e.isIntersecting) { if (!frameId) animate(0); }
           else { cancelAnimationFrame(frameId); frameId = null; }
         });
       }, { threshold: 0 });
