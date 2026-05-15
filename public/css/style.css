@@ -189,7 +189,7 @@ a, button, [role="button"] {
   background: var(--blue);
   border-radius: 50%;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 999999;
   transform: translate(-50%, -50%);
   transition: transform 0.15s var(--ease-out-expo),
               background 0.3s,
@@ -204,7 +204,7 @@ a, button, [role="button"] {
   border: 1px solid rgba(113, 112, 243, 0.6);
   border-radius: 50%;
   pointer-events: none;
-  z-index: 9998;
+  z-index: 999998;
   transform: translate(-50%, -50%);
   transition: width 0.3s, height 0.3s, border-color 0.3s;
   will-change: transform;
@@ -216,7 +216,7 @@ a, button, [role="button"] {
   background: var(--alabaster);
   border-radius: 50%;
   pointer-events: none;
-  z-index: 10000;
+  z-index: 1000000;
   transform: translate(-50%, -50%);
   will-change: transform;
 }

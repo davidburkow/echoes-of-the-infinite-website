@@ -229,17 +229,15 @@
     if (!canvas) return;
 
     // ── Renderer ──────────────────────────────────────────────
-    // Cap DPR at 1.5 — halves pixel count vs 2x retina, big perf win
-    // on complex fragment shaders with no meaningful visual difference.
+    // Cap DPR at 1.0 globally — the shader is complex enough that rendering
+    // at native retina resolution (2x) is 4x the pixel work for minimal gain.
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: false,
       antialias: false,
       powerPreference: 'high-performance',
     });
-    // Cap DPR lower on mobile/iOS for better performance
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const DPR = Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5);
+    const DPR = 1.0;
     renderer.setPixelRatio(DPR);
     // Size against the canvas element so 100svh ≠ window.innerHeight
     // mismatches don't leave an uncovered strip at top/bottom.
@@ -483,9 +481,16 @@
     });
 
     // ── Animation loop ────────────────────────────────────────
+    // Cap hero render to 30 fps — halves GPU work, nebula is slow-moving
+    // so the lower frame rate is imperceptible.
+    const HERO_FPS   = 30;
+    const HERO_FRAME = 1000 / HERO_FPS;
+    let lastHeroTime = 0;
     let frameId;
-    function animate() {
+    function animate(now) {
       frameId = requestAnimationFrame(animate);
+      if (now - lastHeroTime < HERO_FRAME) return;
+      lastHeroTime = now;
 
       targetMouse.x += (mouse.x - targetMouse.x) * 0.03;
       targetMouse.y += (mouse.y - targetMouse.y) * 0.03;
@@ -495,7 +500,7 @@
 
       renderer.render(scene, camera);
     }
-    animate();
+    animate(0);
 
     // Pause when hero leaves viewport (performance)
     const heroEl = document.getElementById('hero');
@@ -1295,7 +1300,7 @@
       if (!canvas || typeof THREE === 'undefined') return;
       if (!_hero.vertSrc || !_hero.fragSrc) return;
 
-      var DPR = Math.min(window.devicePixelRatio, 1.5);
+      var DPR = 1.0;
 
       eeThreeRenderer = new THREE.WebGLRenderer({
         canvas: canvas,
@@ -1496,43 +1501,44 @@
         return;
       }
 
-      // filter order must stay brightness() sepia() blur() throughout
+      // Removed blur() — most expensive filter, causes lag on mid-range GPUs.
+      // brightness + sepia preserved for the color/energy effect.
       gsap.set(content, {
         opacity:  0,
         scaleX:   0.04,
         scaleY:   0.16,
         rotation: 480,
-        filter:   'brightness(0) sepia(1) blur(4px)',
+        filter:   'brightness(0) sepia(1)',
       });
 
       gsap.timeline()
-        // Phase 1 — Burst from event horizon (time dilation = slow start)
+        // Phase 1 — Burst from event horizon
         .to(content, {
           opacity:  0.38,
           scaleX:   0.16,
           scaleY:   0.50,
           rotation: 360,
-          filter:   'brightness(0.45) sepia(0.88) blur(2.5px)',
+          filter:   'brightness(0.45) sepia(0.88)',
           duration: 0.75,
           ease:     'power4.in',
         })
-        // Phase 2 — Despaghettification + orbital release (accelerating)
+        // Phase 2 — Despaghettification + orbital release
         .to(content, {
           opacity:  0.80,
           scaleX:   0.60,
           scaleY:   0.88,
           rotation: 140,
-          filter:   'brightness(0.80) sepia(0.45) blur(0.7px)',
+          filter:   'brightness(0.80) sepia(0.45)',
           duration: 1.1,
           ease:     'power2.out',
         })
-        // Phase 3 — Gravity releases its hold (decelerates to rest)
+        // Phase 3 — Gravity releases its hold
         .to(content, {
           opacity:  1,
           scaleX:   1,
           scaleY:   1,
           rotation: 0,
-          filter:   'brightness(1) sepia(0) blur(0px)',
+          filter:   'brightness(1) sepia(0)',
           duration: 1.0,
           ease:     'power3.out',
         });
@@ -1572,7 +1578,7 @@
           gsap.set(content, { opacity: 0, scale: 1, rotation: 0, filter: 'none' });
         } else {
           gsap.set(content, { opacity: 0, scaleX: 0.04, scaleY: 0.16,
-            rotation: 480, filter: 'brightness(0) sepia(1) blur(4px)' });
+            rotation: 480, filter: 'brightness(0) sepia(1)' });
         }
       } else {
         content.style.opacity = '0';
@@ -1681,7 +1687,7 @@
           // Suck text back into the black hole (desktop)
           gsap.to(content, {
             opacity: 0, scaleX: 0.04, scaleY: 0.16,
-            rotation: 495, filter: 'brightness(0) sepia(1) blur(4px)',
+            rotation: 495, filter: 'brightness(0) sepia(1)',
             duration: 0.55, ease: 'power3.in',
             onComplete: cleanUp,
           });
