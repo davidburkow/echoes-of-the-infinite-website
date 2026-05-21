@@ -1750,14 +1750,14 @@
     canvas.id = 'sacred-geo-canvas';
     canvas.style.cssText =
       'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;' +
-      'z-index:999996;mix-blend-mode:screen;';
+      'z-index:5;mix-blend-mode:screen;will-change:contents;';
     document.body.appendChild(canvas);
 
     var ctx = canvas.getContext('2d');
     var W = 0, H = 0;
 
     // ── Grid constants ────────────────────────────────────────
-    var CELL   = 64;           // slightly smaller panels
+    var CELL   = 32;           // small panels — half previous size
     var R_HEX  = CELL * 0.572; // circumradius → edge-to-edge tiling
     var NBR_R2 = (CELL * 1.09) * (CELL * 1.09);
     var SHAPES = ['metatron','sriyantra','flower','hexagram','seed','merkaba'];
