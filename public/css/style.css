@@ -1979,77 +1979,138 @@ footer {
 .ee-save-btn:active { color: rgba(244, 245, 236, 1); }
 
 /* =============================================================
-   iOS — CSS black hole hero (no WebGL)
-   All animations use transform/opacity only — GPU-composited,
-   zero CPU cost, safe on all iOS devices.
+   iOS — Multi-layer CSS black hole (no WebGL)
+   All animations use transform/opacity only — GPU-composited on iOS.
+   Four layers: space bg · outer halo · two accretion disks · core.
 ============================================================= */
 #hero-ios-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  /* Deep space backdrop */
+  /* Deep space — subtle purple nebula behind the black hole */
   background:
-    radial-gradient(ellipse 70% 65% at 52% 46%,
-      rgba(18, 5, 40, 0.98) 0%,
-      rgba(8, 3, 18, 0.99) 50%,
-      var(--black) 80%);
+    radial-gradient(ellipse 55% 50% at 52% 46%,
+      rgba(35, 10, 70,  0.92) 0%,
+      rgba(15,  5, 35,  0.97) 45%,
+      var(--black) 75%),
+    radial-gradient(ellipse 90% 80% at 52% 46%,
+      rgba(8, 3, 20, 0.98) 0%,
+      var(--black) 70%);
 }
 
-/* ── Accretion disk — tilted ellipse, slow rotation ── */
+/* ── Outer nebula halo — slow breathe, no spin (cheap) ── */
 #hero-ios-bg::before {
   content: '';
   position: absolute;
   top: 46%; left: 52%;
-  width: 64vmin;
-  height: 64vmin;
+  width: 92vmin; height: 92vmin;
   border-radius: 50%;
-  transform: translate(-50%, -50%) rotate(0deg) scaleY(0.28);
-  /* Hot disk: yellow-white core fading through magenta to blue-violet rim */
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 210, 80,  0.00),
-    rgba(255, 200, 60,  0.70) 12%,
-    rgba(220, 120, 255, 0.55) 28%,
-    rgba(113, 112, 243, 0.45) 42%,
-    rgba(85,  85,  159, 0.20) 55%,
-    rgba(255, 200, 60,  0.00) 68%,
-    rgba(180, 80,  255, 0.35) 80%,
-    rgba(113, 112, 243, 0.50) 90%,
-    rgba(255, 210, 80,  0.00)
-  );
-  animation: ios-disk-spin 18s linear infinite;
-  will-change: transform;
-}
-@keyframes ios-disk-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg)   scaleY(0.28); }
-  to   { transform: translate(-50%, -50%) rotate(360deg) scaleY(0.28); }
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+    transparent                    28%,
+    rgba(85,  85,  159, 0.13)      40%,
+    rgba(113, 112, 243, 0.09)      52%,
+    rgba(155,  60, 180, 0.06)      62%,
+    transparent                    72%);
+  animation: ios-bh-breathe 9s ease-in-out infinite;
+  will-change: opacity;
 }
 
-/* ── Event horizon + photon-sphere glow ── */
+/* ── Secondary dim disk — wider, slower, opposite direction ── */
+.ios-bh-disk2 {
+  position: absolute;
+  top: 46%; left: 52%;
+  width: 82vmin; height: 82vmin;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(30deg) scaleY(0.18);
+  background: conic-gradient(
+    from 0deg,
+    rgba(113, 112, 243, 0.00),
+    rgba(113, 112, 243, 0.22) 18%,
+    rgba(155,  60, 180, 0.18) 35%,
+    rgba(85,   85, 159, 0.10) 50%,
+    rgba(113, 112, 243, 0.00) 58%,
+    rgba(155,  60, 180, 0.15) 78%,
+    rgba(113, 112, 243, 0.20) 92%,
+    rgba(113, 112, 243, 0.00)
+  );
+  animation: ios-disk2-spin 28s linear infinite reverse;
+  will-change: transform;
+}
+@keyframes ios-disk2-spin {
+  from { transform: translate(-50%, -50%) rotate(30deg)   scaleY(0.18); }
+  to   { transform: translate(-50%, -50%) rotate(-330deg) scaleY(0.18); }
+}
+
+/* ── Main bright accretion disk — fast, asymmetric (Doppler brighten) ── */
+.ios-bh-disk1 {
+  position: absolute;
+  top: 46%; left: 52%;
+  width: 64vmin; height: 64vmin;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(0deg) scaleY(0.24);
+  /* Bright hot-side (yellow-white) sweeping to cooler blue-violet */
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 230, 130, 0.00),
+    rgba(255, 220,  80, 0.85) 8%,
+    rgba(255, 180,  60, 0.70) 16%,
+    rgba(200,  90, 255, 0.55) 30%,
+    rgba(113, 112, 243, 0.45) 44%,
+    rgba(85,   85, 159, 0.20) 56%,
+    rgba(255, 220,  80, 0.00) 66%,
+    rgba(180,  70, 255, 0.38) 80%,
+    rgba(113, 112, 243, 0.52) 92%,
+    rgba(255, 230, 130, 0.00)
+  );
+  animation: ios-disk1-spin 16s linear infinite;
+  will-change: transform;
+}
+@keyframes ios-disk1-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg)   scaleY(0.24); }
+  to   { transform: translate(-50%, -50%) rotate(360deg) scaleY(0.24); }
+}
+
+/* ── Event horizon + photon ring ── */
+.ios-bh-core {
+  position: absolute;
+  top: 46%; left: 52%;
+  width: 28vmin; height: 28vmin;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+    #000000                       0%,
+    #000000                      38%,
+    rgba(200, 160, 255, 0.95)    46%,
+    rgba(113, 112, 243, 0.65)    54%,
+    rgba(85,   85, 159, 0.30)    63%,
+    transparent                  76%);
+  animation: ios-bh-breathe 6s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes ios-bh-breathe {
+  0%, 100% { opacity: 0.78; }
+  50%      { opacity: 1.00; }
+}
+
+/* ── Event horizon + photon-sphere glow — kept for ::after slot ── */
 #hero-ios-bg::after {
   content: '';
   position: absolute;
   top: 46%; left: 52%;
-  width: 30vmin;
-  height: 30vmin;
+  width: 46vmin; height: 46vmin;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  /* Black void in centre, blue-violet photon ring, fading outer halo */
+  /* Soft mid-ring glow that sits between disk and core */
   background: radial-gradient(circle,
-    #000000              0%,
-    #000000              38%,
-    rgba(150, 120, 255, 0.85) 46%,
-    rgba(113, 112, 243, 0.50) 54%,
-    rgba(85,  85,  159, 0.22) 64%,
-    transparent          78%
-  );
-  animation: ios-bh-breathe 7s ease-in-out infinite;
+    transparent                  35%,
+    rgba(155,  80, 255, 0.18)    46%,
+    rgba(113, 112, 243, 0.12)    56%,
+    transparent                  68%);
+  animation: ios-bh-breathe 5s ease-in-out infinite 1.5s;
   will-change: opacity;
-}
-@keyframes ios-bh-breathe {
-  0%, 100% { opacity: 0.80; }
-  50%      { opacity: 1.00; }
 }
 
 /* =============================================================

@@ -217,9 +217,24 @@
     // Hide the WebGL canvas — not needed on iOS
     var canvas = document.getElementById('webgl-canvas');
     if (canvas) canvas.style.display = 'none';
-    // Add iOS bg div
+
+    // Build multi-layer CSS black hole
     var bg = document.createElement('div');
     bg.id = 'hero-ios-bg';
+
+    // Inner bright accretion disk (fast, asymmetric brightness)
+    var d1 = document.createElement('div');
+    d1.className = 'ios-bh-disk1';
+    // Outer dimmer halo disk (slower, opposite direction)
+    var d2 = document.createElement('div');
+    d2.className = 'ios-bh-disk2';
+    // Central event horizon + photon ring
+    var core = document.createElement('div');
+    core.className = 'ios-bh-core';
+
+    bg.appendChild(d2);
+    bg.appendChild(d1);
+    bg.appendChild(core);
     hero.insertBefore(bg, hero.firstChild);
   }
 
@@ -1155,7 +1170,7 @@
     const original = el.innerText;
     const chars    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789∞◊△○';
     let frame      = 0;
-    const FRAMES   = 18;
+    const FRAMES   = 54;  // 3× original (18) — characters linger scrambled longer
 
     const interval = setInterval(() => {
       el.innerText = original
