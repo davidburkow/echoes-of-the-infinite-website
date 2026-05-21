@@ -1739,13 +1739,11 @@
   }
 
   /* ===========================================================
-     SACRED GEOMETRY CURSOR — REVEAL SYSTEM
-     The entire page is invisibly tiled with a hexagonal grid of
-     sacred geometry panels (6 shape types, deterministically placed).
-     Moving the cursor acts like a torch: panels near the cursor path
-     light up in gold and slowly fade back to invisible.
-     A rolling trail of cursor positions means directional movement
-     reveals a glowing swath of geometry in your wake.
+     SACRED GEOMETRY CURSOR — HEX PANEL REVEAL
+     Hidden honeycomb grid tiles the page. The cursor illuminates
+     exactly the panel it's on + its 6 neighbours. Everything else
+     fades out immediately. No trail, no shadowBlur — kept lean
+     so it doesn't impact site performance.
   =========================================================== */
   function initSacredGeoCursor() {
     var canvas = document.createElement('canvas');
@@ -1758,14 +1756,14 @@
     var ctx = canvas.getContext('2d');
     var W = 0, H = 0;
 
-    // ── Hexagonal grid of sacred geometry panels ──────────────
-    // CELL = center-to-center distance; R = CELL * 0.577 makes
-    // adjacent pointy-top hexagons share edges exactly (honeycomb).
-    var CELL      = 72;      // tighter grid — panels touch their neighbors
-    var R_HEX     = CELL * 0.572; // circumradius for edge-to-edge tiling
-    var REVEAL_R  = 185;     // illumination radius per trail point
-    var SHAPES    = ['hexagram', 'seed', 'hexagon', 'triangle', 'vesica', 'pentagon'];
-    var nodes     = [];
+    // ── Grid constants ────────────────────────────────────────
+    var CELL   = 72;           // centre-to-centre spacing
+    var R_HEX  = CELL * 0.572; // circumradius → edge-to-edge tiling
+    // Neighbor detection: nodes within this distance of the nearest
+    // node are the center + its 6 hex neighbours (≈ CELL apart).
+    var NBR_R2 = (CELL * 1.09) * (CELL * 1.09);
+    var SHAPES = ['hexagram','seed','hexagon','triangle','vesica','pentagon'];
+    var nodes  = [];
 
     function shapeAt(c, r) {
       return SHAPES[Math.abs(c * 3 + r * 7 + c * r * 2) % SHAPES.length];
@@ -1784,7 +1782,6 @@
             shape: shapeAt(c, r),
             size: R_HEX,
             alpha: 0,
-            // Inner pattern rotation only (outer hex border stays fixed so edges connect)
             rot: 0,
             rotSpeed: ((c + r) % 2 === 0 ? 1 : -1) * 0.004,
           });
@@ -1800,14 +1797,13 @@
     resize();
     window.addEventListener('resize', resize, { passive: true });
 
-    // ── Cursor trail — rolling list of recent positions ───────
-    var trail     = [];           // { x, y, age }
-    var MAX_TRAIL = 28;           // how many points to keep
+    // ── Mouse position (no trail — just current location) ────
+    var mx = -9999, my = -9999;
     var hasMoused = false;
 
     document.addEventListener('mousemove', function (e) {
-      trail.unshift({ x: e.clientX, y: e.clientY, age: 1.0 });
-      if (trail.length > MAX_TRAIL) trail.length = MAX_TRAIL;
+      mx = e.clientX;
+      my = e.clientY;
       hasMoused = true;
     }, { passive: true });
 
@@ -1819,9 +1815,9 @@
     function drawShape(shape, r, a, innerRot) {
       if (a < 0.004) return;
       var i, ang;
-      ctx.strokeStyle = 'rgba(212,175,55,1)';
-      ctx.shadowColor = 'rgba(212,175,55,0.55)';
-      ctx.shadowBlur  = 10;
+      // No shadowBlur — it's expensive and makes the site laggy.
+      // Brightness comes from alpha and line weight alone.
+      ctx.strokeStyle = 'rgba(228,190,60,1)';
 
       // ── Outer hexagon border — every panel shares this edge ──
       // Pointy-top (π/6 offset) matches the hex grid offset rows.
@@ -1967,43 +1963,38 @@
       ctx.restore();
     }
 
-    // ── Animation tick ────────────────────────────────────────
-    function tick() {
-      requestAnimationFrame(tick);
-      ctx.clearRect(0, 0, W, H);
+    // ── Animation tick — 30 fps cap ───────────────────────────
+    var lastFrame = 0;
+    var FRAME_MS  = 1000 / 30;
 
+    function tick(now) {
+      requestAnimationFrame(tick);
+      if (now - lastFrame < FRAME_MS) return;
+      lastFrame = now;
+
+      ctx.clearRect(0, 0, W, H);
       if (!hasMoused) return;
 
-      // Decay trail ages — this controls how long the reveal lingers
-      for (var t = 0; t < trail.length; t++) {
-        trail[t].age *= 0.955; // ~1.5–2s full fade
-      }
-      // Drop fully dead trail points
-      while (trail.length && trail[trail.length - 1].age < 0.02) trail.pop();
-
-      // Update and draw each panel
+      // ── 1. Find the node closest to cursor ────────────────
+      var nearestD2 = Infinity, nearX = 0, nearY = 0;
       for (var i = 0; i < nodes.length; i++) {
-        var n = nodes[i];
+        var dx = mx - nodes[i].x, dy = my - nodes[i].y;
+        var d2 = dx * dx + dy * dy;
+        if (d2 < nearestD2) { nearestD2 = d2; nearX = nodes[i].x; nearY = nodes[i].y; }
+      }
 
-        // Find the brightest trail point near this node
-        var peak = 0;
-        for (var t = 0; t < trail.length; t++) {
-          var dx   = trail[t].x - n.x;
-          var dy   = trail[t].y - n.y;
-          var dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < REVEAL_R) {
-            var illum = (1 - dist / REVEAL_R) * trail[t].age * 0.82;
-            if (illum > peak) peak = illum;
-          }
-        }
+      // ── 2. Update alphas: center+6 neighbours lit, rest fade ─
+      for (var i = 0; i < nodes.length; i++) {
+        var n  = nodes[i];
+        var dx = nearX - n.x, dy = nearY - n.y;
+        var isNeighbour = (dx * dx + dy * dy) < NBR_R2;
 
-        // Snap up to peak brightness, then let trail decay handle fade-out
-        if (peak > n.alpha) n.alpha = peak;
-        // Gentle additional decay so panels dim smoothly even if trail is still near
-        n.alpha *= 0.978;
-        if (n.alpha < 0.004) { n.alpha = 0; continue; }
+        // Snap in fast, snap out fast
+        var target = isNeighbour ? 0.82 : 0;
+        var speed  = isNeighbour ? 0.25 : 0.18;
+        n.alpha   += (target - n.alpha) * speed;
+        if (n.alpha < 0.005) { n.alpha = 0; continue; }
 
-        // Rotate while visible
         n.rot += n.rotSpeed;
 
         ctx.save();
@@ -2013,7 +2004,7 @@
       }
     }
 
-    tick();
+    requestAnimationFrame(tick);
   }
 
   /* ===========================================================
