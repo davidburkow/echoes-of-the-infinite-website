@@ -59,6 +59,7 @@
       initReleaseParticles();
       initParallax();
       initBurkoImprint();
+      initSacredGeoCursor(); // golden sacred geometry that follows the mouse
     }
   });
 
@@ -1735,6 +1736,175 @@
         active = false;
       }
     }
+  }
+
+  /* ===========================================================
+     SACRED GEOMETRY CURSOR
+     A golden Flower of Life / hexagram mandala softly illuminates
+     wherever the mouse rests. Brightens when still, dims when moving.
+     Two counter-rotating layers give it organic life.
+     All canvas drawing — zero DOM reflow, zero GSAP dependency.
+  =========================================================== */
+  function initSacredGeoCursor() {
+    var canvas = document.createElement('canvas');
+    canvas.id = 'sacred-geo-canvas';
+    canvas.style.cssText =
+      'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;' +
+      'z-index:999996;mix-blend-mode:screen;';
+    document.body.appendChild(canvas);
+
+    var ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    var mx = -2000, my = -2000;  // start far offscreen
+    var vel = 0;
+    var rot1 = 0, rot2 = 0;
+    var alpha = 0, targetAlpha = 0;
+    var hasMoused = false;
+
+    document.addEventListener('mousemove', function (e) {
+      var dx = e.clientX - mx, dy = e.clientY - my;
+      vel = Math.sqrt(dx * dx + dy * dy);
+      mx = e.clientX;
+      my = e.clientY;
+      hasMoused = true;
+    }, { passive: true });
+
+    // ── Draw one sacred geometry mandala ──────────────────────
+    function drawGeo(cx, cy, r, rot, a) {
+      if (a < 0.004) return;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.globalAlpha = a;
+
+      // Golden glow
+      ctx.shadowColor  = 'rgba(212,175,55,0.7)';
+      ctx.shadowBlur   = 10;
+
+      var gold  = 'rgba(212,175,55,1)';
+      var gold2 = 'rgba(255,210,60,1)';
+      var i, ang, px, py;
+
+      // ── Outer containing circle ───────────────────────────
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.strokeStyle = gold;
+      ctx.lineWidth   = 0.55;
+      ctx.globalAlpha = a * 0.65;
+      ctx.stroke();
+
+      // ── Outer hexagon inscribed in circle ────────────────
+      ctx.beginPath();
+      for (i = 0; i < 6; i++) {
+        ang = (i / 6) * Math.PI * 2;
+        px  = Math.cos(ang) * r;
+        py  = Math.sin(ang) * r;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = gold;
+      ctx.lineWidth   = 0.45;
+      ctx.globalAlpha = a * 0.45;
+      ctx.stroke();
+
+      // ── Flower of Life — center + 6 petal circles ────────
+      var pr = r * 0.5;
+      ctx.strokeStyle = gold;
+      ctx.lineWidth   = 0.4;
+      ctx.globalAlpha = a * 0.35;
+
+      ctx.beginPath();
+      ctx.arc(0, 0, pr, 0, Math.PI * 2);
+      ctx.stroke();
+
+      for (i = 0; i < 6; i++) {
+        ang = (i / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(Math.cos(ang) * pr, Math.sin(ang) * pr, pr, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // ── Hexagram (Star of David — two interlocked triangles)
+      var tr = r * 0.62;
+      ctx.strokeStyle = gold2;
+      ctx.lineWidth   = 0.65;
+      ctx.globalAlpha = a * 0.9;
+
+      // Triangle pointing up
+      ctx.beginPath();
+      for (i = 0; i < 3; i++) {
+        ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+        i === 0 ? ctx.moveTo(Math.cos(ang) * tr, Math.sin(ang) * tr)
+                : ctx.lineTo(Math.cos(ang) * tr, Math.sin(ang) * tr);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      // Triangle pointing down
+      ctx.beginPath();
+      for (i = 0; i < 3; i++) {
+        ang = (i / 3) * Math.PI * 2 + Math.PI / 2;
+        i === 0 ? ctx.moveTo(Math.cos(ang) * tr, Math.sin(ang) * tr)
+                : ctx.lineTo(Math.cos(ang) * tr, Math.sin(ang) * tr);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      // ── Inner hexagon (at intersection of triangles) ──────
+      var ir = r * 0.36;
+      ctx.beginPath();
+      for (i = 0; i < 6; i++) {
+        ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
+        px  = Math.cos(ang) * ir;
+        py  = Math.sin(ang) * ir;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = gold;
+      ctx.lineWidth   = 0.4;
+      ctx.globalAlpha = a * 0.5;
+      ctx.stroke();
+
+      // ── Center dot ────────────────────────────────────────
+      ctx.beginPath();
+      ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle   = gold2;
+      ctx.globalAlpha = a * 0.7;
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // ── Animation loop ────────────────────────────────────────
+    function tick() {
+      requestAnimationFrame(tick);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!hasMoused) return;
+
+      // Velocity decays each frame — mouse stillness = brighter
+      vel         *= 0.82;
+      targetAlpha  = Math.max(0.06, 0.22 - vel * 0.005);
+      alpha       += (targetAlpha - alpha) * 0.055;
+
+      // Counter-rotating layers
+      rot1 += 0.0025;
+      rot2 -= 0.0015;
+
+      // Inner layer — tighter, brighter
+      drawGeo(mx, my, 72, rot1, alpha);
+      // Outer layer — larger, more transparent, slower counter-rotation
+      drawGeo(mx, my, 138, rot2, alpha * 0.4);
+    }
+
+    tick();
   }
 
   /* ===========================================================
