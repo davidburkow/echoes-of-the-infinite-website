@@ -1757,12 +1757,10 @@
     var W = 0, H = 0;
 
     // ── Grid constants ────────────────────────────────────────
-    var CELL   = 72;           // centre-to-centre spacing
+    var CELL   = 64;           // slightly smaller panels
     var R_HEX  = CELL * 0.572; // circumradius → edge-to-edge tiling
-    // Neighbor detection: nodes within this distance of the nearest
-    // node are the center + its 6 hex neighbours (≈ CELL apart).
     var NBR_R2 = (CELL * 1.09) * (CELL * 1.09);
-    var SHAPES = ['hexagram','seed','hexagon','triangle','vesica','pentagon'];
+    var SHAPES = ['metatron','sriyantra','flower','hexagram','seed','merkaba'];
     var nodes  = [];
 
     function shapeAt(c, r) {
@@ -1839,9 +1837,80 @@
 
       switch (shape) {
 
-        case 'hexagram': // Star of David
-          ctx.lineWidth = 0.7;
-          ctx.globalAlpha = a * 0.9;
+        case 'metatron': { // Metatron's Cube — 13 circles + all connecting lines
+          var mc  = ir * 0.46;
+          var cr3 = mc * 0.30;
+          var pts = [{ x: 0, y: 0 }];
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2;
+            pts.push({ x: Math.cos(ang) * mc,     y: Math.sin(ang) * mc });
+            pts.push({ x: Math.cos(ang) * mc * 2, y: Math.sin(ang) * mc * 2 });
+          }
+          ctx.lineWidth = 0.28; ctx.globalAlpha = a * 0.22;
+          for (var p1 = 0; p1 < pts.length; p1++)
+            for (var p2 = p1 + 1; p2 < pts.length; p2++) {
+              ctx.beginPath(); ctx.moveTo(pts[p1].x, pts[p1].y);
+              ctx.lineTo(pts[p2].x, pts[p2].y); ctx.stroke();
+            }
+          ctx.lineWidth = 0.4; ctx.globalAlpha = a * 0.55;
+          for (var p = 0; p < pts.length; p++) {
+            ctx.beginPath(); ctx.arc(pts[p].x, pts[p].y, cr3, 0, Math.PI * 2); ctx.stroke();
+          }
+          ctx.globalAlpha = a * 0.3; ctx.lineWidth = 0.35;
+          ctx.beginPath(); ctx.arc(0, 0, ir, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+
+        case 'sriyantra': { // Sri Yantra — nested alternating triangles
+          var scales = [1.0, 0.74, 0.52, 0.34];
+          for (var lv = 0; lv < 4; lv++) {
+            var sc = scales[lv];
+            ctx.lineWidth = 0.45; ctx.globalAlpha = a * (0.8 - lv * 0.14);
+            ctx.beginPath();
+            for (i = 0; i < 3; i++) {
+              ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+              i === 0 ? ctx.moveTo(Math.cos(ang) * ir * sc, Math.sin(ang) * ir * sc)
+                      : ctx.lineTo(Math.cos(ang) * ir * sc, Math.sin(ang) * ir * sc);
+            }
+            ctx.closePath(); ctx.stroke();
+            ctx.globalAlpha = a * (0.7 - lv * 0.12);
+            ctx.beginPath();
+            for (i = 0; i < 3; i++) {
+              ang = (i / 3) * Math.PI * 2 + Math.PI / 2;
+              i === 0 ? ctx.moveTo(Math.cos(ang) * ir * sc * 0.88, Math.sin(ang) * ir * sc * 0.88)
+                      : ctx.lineTo(Math.cos(ang) * ir * sc * 0.88, Math.sin(ang) * ir * sc * 0.88);
+            }
+            ctx.closePath(); ctx.stroke();
+          }
+          ctx.globalAlpha = a * 0.35; ctx.lineWidth = 0.38;
+          ctx.beginPath(); ctx.arc(0, 0, ir, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = a * 0.65;
+          ctx.beginPath(); ctx.arc(0, 0, ir * 0.055, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(228,190,60,1)'; ctx.fill();
+          break;
+        }
+
+        case 'flower': { // Flower of Life — overlapping circles
+          var fcr = ir * 0.38; ctx.lineWidth = 0.4;
+          ctx.globalAlpha = a * 0.62;
+          ctx.beginPath(); ctx.arc(0, 0, fcr, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = a * 0.48;
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2;
+            ctx.beginPath(); ctx.arc(Math.cos(ang) * fcr, Math.sin(ang) * fcr, fcr, 0, Math.PI * 2); ctx.stroke();
+          }
+          ctx.globalAlpha = a * 0.28; ctx.lineWidth = 0.32;
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
+            ctx.beginPath(); ctx.arc(Math.cos(ang) * fcr * 1.732, Math.sin(ang) * fcr * 1.732, fcr, 0, Math.PI * 2); ctx.stroke();
+          }
+          ctx.globalAlpha = a * 0.28;
+          ctx.beginPath(); ctx.arc(0, 0, ir, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+
+        case 'hexagram': { // Star of David — two interlocked triangles
+          ctx.lineWidth = 0.6; ctx.globalAlpha = a * 0.85;
           for (var t = 0; t < 2; t++) {
             ctx.beginPath();
             for (i = 0; i < 3; i++) {
@@ -1849,115 +1918,65 @@
               i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
                       : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
             }
-            ctx.closePath();
-            ctx.stroke();
+            ctx.closePath(); ctx.stroke();
           }
-          ctx.globalAlpha = a * 0.4;
-          ctx.lineWidth = 0.45;
-          ctx.beginPath();
-          ctx.arc(0, 0, ir * 0.38, 0, Math.PI * 2);
-          ctx.stroke();
-          break;
-
-        case 'seed': // Seed of Life
-          var cr = ir * 0.44;
-          ctx.lineWidth = 0.5;
-          ctx.globalAlpha = a * 0.65;
-          ctx.beginPath();
-          ctx.arc(0, 0, cr, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.globalAlpha = a * 0.45;
-          for (i = 0; i < 6; i++) {
-            ang = (i / 6) * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(Math.cos(ang) * cr, Math.sin(ang) * cr, cr, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-          break;
-
-        case 'hexagon': // Inner hexagon + spokes
-          ctx.lineWidth = 0.65;
-          ctx.globalAlpha = a * 0.75;
+          ctx.globalAlpha = a * 0.4; ctx.lineWidth = 0.38;
           ctx.beginPath();
           for (i = 0; i < 6; i++) {
             ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
-                    : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
+            i === 0 ? ctx.moveTo(Math.cos(ang) * ir * 0.5, Math.sin(ang) * ir * 0.5)
+                    : ctx.lineTo(Math.cos(ang) * ir * 0.5, Math.sin(ang) * ir * 0.5);
           }
-          ctx.closePath();
-          ctx.stroke();
-          ctx.globalAlpha = a * 0.28;
-          ctx.lineWidth = 0.4;
+          ctx.closePath(); ctx.stroke();
+          ctx.globalAlpha = a * 0.32;
+          ctx.beginPath(); ctx.arc(0, 0, ir, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+
+        case 'seed': { // Seed of Life
+          var scr = ir * 0.45; ctx.lineWidth = 0.42; ctx.globalAlpha = a * 0.62;
+          ctx.beginPath(); ctx.arc(0, 0, scr, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = a * 0.45;
           for (i = 0; i < 6; i++) {
             ang = (i / 6) * Math.PI * 2;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
-            ctx.stroke();
+            ctx.beginPath(); ctx.arc(Math.cos(ang) * scr, Math.sin(ang) * scr, scr, 0, Math.PI * 2); ctx.stroke();
           }
+          ctx.globalAlpha = a * 0.28; ctx.lineWidth = 0.32;
+          ctx.beginPath(); ctx.arc(0, 0, ir, 0, Math.PI * 2); ctx.stroke();
           break;
+        }
 
-        case 'triangle': // Triangle + inscribed circle
-          ctx.lineWidth = 0.7;
-          ctx.globalAlpha = a * 0.85;
+        case 'merkaba': { // Merkaba — star tetrahedron with depth lines
+          ctx.lineWidth = 0.6; ctx.globalAlpha = a * 0.82;
           ctx.beginPath();
           for (i = 0; i < 3; i++) {
             ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
             i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
                     : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
           }
-          ctx.closePath();
-          ctx.stroke();
-          ctx.globalAlpha = a * 0.45;
-          ctx.lineWidth = 0.45;
+          ctx.closePath(); ctx.stroke();
           ctx.beginPath();
-          ctx.arc(0, 0, ir * 0.46, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.globalAlpha = a * 0.28;
-          ctx.lineWidth = 0.38;
           for (i = 0; i < 3; i++) {
-            ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
-            ctx.beginPath();
-            ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
-            ctx.lineTo(0, 0);
-            ctx.stroke();
-          }
-          break;
-
-        case 'vesica': // Vesica Piscis
-          var off = ir * 0.48;
-          ctx.lineWidth = 0.55;
-          ctx.globalAlpha = a * 0.7;
-          ctx.beginPath();
-          ctx.arc(-off, 0, ir, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(off, 0, ir, 0, Math.PI * 2);
-          ctx.stroke();
-          break;
-
-        case 'pentagon': // Pentagon + inner pentagram
-          ctx.lineWidth = 0.65;
-          ctx.globalAlpha = a * 0.8;
-          ctx.beginPath();
-          for (i = 0; i < 5; i++) {
-            ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
+            ang = (i / 3) * Math.PI * 2 + Math.PI / 2;
             i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
                     : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
           }
-          ctx.closePath();
-          ctx.stroke();
-          ctx.globalAlpha = a * 0.48;
-          ctx.lineWidth = 0.45;
-          ctx.beginPath();
-          for (i = 0; i < 5; i++) {
-            var pa1 = (i / 5) * Math.PI * 2 - Math.PI / 2;
-            var pa2 = ((i + 2) / 5) * Math.PI * 2 - Math.PI / 2;
-            ctx.moveTo(Math.cos(pa1) * ir, Math.sin(pa1) * ir);
-            ctx.lineTo(Math.cos(pa2) * ir, Math.sin(pa2) * ir);
+          ctx.closePath(); ctx.stroke();
+          ctx.globalAlpha = a * 0.32; ctx.lineWidth = 0.35;
+          for (i = 0; i < 3; i++) {
+            var va  = (i / 3) * Math.PI * 2 - Math.PI / 2;
+            var ma1 = ((i + 1) / 3) * Math.PI * 2 + Math.PI / 2;
+            var ma2 = ((i + 2) / 3) * Math.PI * 2 + Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(va) * ir, Math.sin(va) * ir);
+            ctx.lineTo((Math.cos(ma1) + Math.cos(ma2)) * ir * 0.5,
+                       (Math.sin(ma1) + Math.sin(ma2)) * ir * 0.5);
+            ctx.stroke();
           }
-          ctx.stroke();
+          ctx.globalAlpha = a * 0.38; ctx.lineWidth = 0.35;
+          ctx.beginPath(); ctx.arc(0, 0, ir * 0.35, 0, Math.PI * 2); ctx.stroke();
           break;
+        }
       }
 
       ctx.restore();
@@ -1990,7 +2009,7 @@
         var isNeighbour = (dx * dx + dy * dy) < NBR_R2;
 
         // Snap in fast, snap out fast
-        var target = isNeighbour ? 0.82 : 0;
+        var target = isNeighbour ? 0.55 : 0;
         var speed  = isNeighbour ? 0.25 : 0.18;
         n.alpha   += (target - n.alpha) * speed;
         if (n.alpha < 0.005) { n.alpha = 0; continue; }
