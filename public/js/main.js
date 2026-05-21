@@ -1759,13 +1759,15 @@
     var W = 0, H = 0;
 
     // ── Hexagonal grid of sacred geometry panels ──────────────
-    var CELL      = 115;     // spacing between panel centers
-    var REVEAL_R  = 140;     // illumination radius per trail point
+    // CELL = center-to-center distance; R = CELL * 0.577 makes
+    // adjacent pointy-top hexagons share edges exactly (honeycomb).
+    var CELL      = 72;      // tighter grid — panels touch their neighbors
+    var R_HEX     = CELL * 0.572; // circumradius for edge-to-edge tiling
+    var REVEAL_R  = 185;     // illumination radius per trail point
     var SHAPES    = ['hexagram', 'seed', 'hexagon', 'triangle', 'vesica', 'pentagon'];
     var nodes     = [];
 
     function shapeAt(c, r) {
-      // Deterministic but varied — same grid every session
       return SHAPES[Math.abs(c * 3 + r * 7 + c * r * 2) % SHAPES.length];
     }
 
@@ -1775,18 +1777,16 @@
       var rows = Math.ceil(H / (CELL * 0.866)) + 2;
       for (var r = 0; r <= rows; r++) {
         for (var c = 0; c <= cols; c++) {
-          // Hex grid: odd rows offset by half a cell
           var x = c * CELL + (r % 2 === 0 ? 0 : CELL * 0.5);
           var y = r * CELL * 0.866;
           nodes.push({
             x: x, y: y,
             shape: shapeAt(c, r),
-            size: CELL * 0.31,
+            size: R_HEX,
             alpha: 0,
-            // Deterministic base rotation so grid feels like discovered geometry
-            rot: (c * 0.37 + r * 0.61) % (Math.PI * 2),
-            // Alternate rotation directions for organic feel
-            rotSpeed: ((c + r) % 2 === 0 ? 1 : -1) * 0.0035,
+            // Inner pattern rotation only (outer hex border stays fixed so edges connect)
+            rot: 0,
+            rotSpeed: ((c + r) % 2 === 0 ? 1 : -1) * 0.004,
           });
         }
       }
@@ -1811,58 +1811,61 @@
       hasMoused = true;
     }, { passive: true });
 
-    // ── Shape drawing — 6 sacred geometry types ──────────────
-    function drawShape(shape, r, a) {
+    // ── Shape drawing ─────────────────────────────────────────
+    // r     = circumradius (= R_HEX, fills the cell)
+    // a     = alpha
+    // innerRot = rotation applied only to the inner pattern;
+    //            the outer hex border is fixed so edges connect cleanly
+    function drawShape(shape, r, a, innerRot) {
       if (a < 0.004) return;
-      var i, ang, x, y;
+      var i, ang;
       ctx.strokeStyle = 'rgba(212,175,55,1)';
-      ctx.shadowColor = 'rgba(212,175,55,0.65)';
-      ctx.shadowBlur  = 12;
+      ctx.shadowColor = 'rgba(212,175,55,0.55)';
+      ctx.shadowBlur  = 10;
+
+      // ── Outer hexagon border — every panel shares this edge ──
+      // Pointy-top (π/6 offset) matches the hex grid offset rows.
+      ctx.lineWidth   = 0.9;
+      ctx.globalAlpha = a * 0.52;
+      ctx.beginPath();
+      for (i = 0; i < 6; i++) {
+        ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
+        i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
+                : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      // ── Inner sacred geometry — rotates independently ────────
+      var ir = r * 0.54; // fits comfortably inside the hex border
+      ctx.save();
+      ctx.rotate(innerRot);
 
       switch (shape) {
 
-        case 'hexagram': // Star of David — two interlocked triangles
-          ctx.lineWidth = 0.75;
-          // Upward triangle
-          ctx.globalAlpha = a;
-          ctx.beginPath();
-          for (i = 0; i < 3; i++) {
-            ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
-                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+        case 'hexagram': // Star of David
+          ctx.lineWidth = 0.7;
+          ctx.globalAlpha = a * 0.9;
+          for (var t = 0; t < 2; t++) {
+            ctx.beginPath();
+            for (i = 0; i < 3; i++) {
+              ang = (i / 3) * Math.PI * 2 - Math.PI / 2 + t * Math.PI;
+              i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
+                      : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
+            }
+            ctx.closePath();
+            ctx.stroke();
           }
-          ctx.closePath();
-          ctx.stroke();
-          // Downward triangle
-          ctx.beginPath();
-          for (i = 0; i < 3; i++) {
-            ang = (i / 3) * Math.PI * 2 + Math.PI / 2;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
-                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
-          }
-          ctx.closePath();
-          ctx.stroke();
-          // Containing circle
           ctx.globalAlpha = a * 0.4;
           ctx.lineWidth = 0.45;
           ctx.beginPath();
-          ctx.arc(0, 0, r, 0, Math.PI * 2);
-          ctx.stroke();
-          // Inner hexagon
-          ctx.globalAlpha = a * 0.5;
-          ctx.beginPath();
-          for (i = 0; i < 6; i++) {
-            ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * r * 0.5, Math.sin(ang) * r * 0.5)
-                    : ctx.lineTo(Math.cos(ang) * r * 0.5, Math.sin(ang) * r * 0.5);
-          }
-          ctx.closePath();
+          ctx.arc(0, 0, ir * 0.38, 0, Math.PI * 2);
           ctx.stroke();
           break;
 
-        case 'seed': // Seed of Life — center circle + 6 around
-          var cr = r * 0.52;
-          ctx.lineWidth = 0.55;
+        case 'seed': // Seed of Life
+          var cr = ir * 0.44;
+          ctx.lineWidth = 0.5;
           ctx.globalAlpha = a * 0.65;
           ctx.beginPath();
           ctx.arc(0, 0, cr, 0, Math.PI * 2);
@@ -1874,112 +1877,94 @@
             ctx.arc(Math.cos(ang) * cr, Math.sin(ang) * cr, cr, 0, Math.PI * 2);
             ctx.stroke();
           }
-          // Outer containing circle
-          ctx.globalAlpha = a * 0.3;
-          ctx.lineWidth = 0.4;
-          ctx.beginPath();
-          ctx.arc(0, 0, r, 0, Math.PI * 2);
-          ctx.stroke();
           break;
 
-        case 'hexagon': // Hexagon with spokes + inner ring
-          ctx.lineWidth = 0.7;
-          ctx.globalAlpha = a;
+        case 'hexagon': // Inner hexagon + spokes
+          ctx.lineWidth = 0.65;
+          ctx.globalAlpha = a * 0.75;
           ctx.beginPath();
           for (i = 0; i < 6; i++) {
-            ang = (i / 6) * Math.PI * 2;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
-                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
+                    : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
           }
           ctx.closePath();
           ctx.stroke();
-          // Spokes to center
-          ctx.globalAlpha = a * 0.3;
+          ctx.globalAlpha = a * 0.28;
           ctx.lineWidth = 0.4;
           for (i = 0; i < 6; i++) {
             ang = (i / 6) * Math.PI * 2;
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
             ctx.stroke();
           }
-          // Inner circle
-          ctx.globalAlpha = a * 0.5;
-          ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
-          ctx.stroke();
           break;
 
-        case 'triangle': // Equilateral triangle with inscribed circle + medians
-          ctx.lineWidth = 0.75;
-          ctx.globalAlpha = a;
+        case 'triangle': // Triangle + inscribed circle
+          ctx.lineWidth = 0.7;
+          ctx.globalAlpha = a * 0.85;
           ctx.beginPath();
           for (i = 0; i < 3; i++) {
             ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
-                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
+                    : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
           }
           ctx.closePath();
           ctx.stroke();
-          // Inscribed circle
           ctx.globalAlpha = a * 0.45;
           ctx.lineWidth = 0.45;
           ctx.beginPath();
-          ctx.arc(0, 0, r * 0.48, 0, Math.PI * 2);
+          ctx.arc(0, 0, ir * 0.46, 0, Math.PI * 2);
           ctx.stroke();
-          // Medians from each vertex to centroid
-          ctx.globalAlpha = a * 0.3;
-          ctx.lineWidth = 0.4;
+          ctx.globalAlpha = a * 0.28;
+          ctx.lineWidth = 0.38;
           for (i = 0; i < 3; i++) {
             ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
             ctx.beginPath();
-            ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
             ctx.lineTo(0, 0);
             ctx.stroke();
           }
           break;
 
-        case 'vesica': // Vesica Piscis — two overlapping circles
-          var off = r * 0.5;
-          ctx.lineWidth = 0.6;
-          ctx.globalAlpha = a;
+        case 'vesica': // Vesica Piscis
+          var off = ir * 0.48;
+          ctx.lineWidth = 0.55;
+          ctx.globalAlpha = a * 0.7;
           ctx.beginPath();
-          ctx.arc(-off, 0, r, 0, Math.PI * 2);
+          ctx.arc(-off, 0, ir, 0, Math.PI * 2);
           ctx.stroke();
           ctx.beginPath();
-          ctx.arc(off, 0, r, 0, Math.PI * 2);
+          ctx.arc(off, 0, ir, 0, Math.PI * 2);
           ctx.stroke();
-          // Enclosing rectangle (vesica proportions)
-          ctx.globalAlpha = a * 0.25;
-          ctx.lineWidth = 0.35;
-          ctx.strokeRect(-off, -r, r, r * 2);
           break;
 
-        case 'pentagon': // Pentagon with inner pentagram
-          ctx.lineWidth = 0.7;
-          ctx.globalAlpha = a;
+        case 'pentagon': // Pentagon + inner pentagram
+          ctx.lineWidth = 0.65;
+          ctx.globalAlpha = a * 0.8;
           ctx.beginPath();
           for (i = 0; i < 5; i++) {
             ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
-            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
-                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            i === 0 ? ctx.moveTo(Math.cos(ang) * ir, Math.sin(ang) * ir)
+                    : ctx.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
           }
           ctx.closePath();
           ctx.stroke();
-          // Inner pentagram (skip-2 connections)
-          ctx.globalAlpha = a * 0.55;
-          ctx.lineWidth = 0.5;
+          ctx.globalAlpha = a * 0.48;
+          ctx.lineWidth = 0.45;
           ctx.beginPath();
           for (i = 0; i < 5; i++) {
-            var a1 = (i / 5) * Math.PI * 2 - Math.PI / 2;
-            var a2 = ((i + 2) / 5) * Math.PI * 2 - Math.PI / 2;
-            ctx.moveTo(Math.cos(a1) * r, Math.sin(a1) * r);
-            ctx.lineTo(Math.cos(a2) * r, Math.sin(a2) * r);
+            var pa1 = (i / 5) * Math.PI * 2 - Math.PI / 2;
+            var pa2 = ((i + 2) / 5) * Math.PI * 2 - Math.PI / 2;
+            ctx.moveTo(Math.cos(pa1) * ir, Math.sin(pa1) * ir);
+            ctx.lineTo(Math.cos(pa2) * ir, Math.sin(pa2) * ir);
           }
           ctx.stroke();
           break;
       }
+
+      ctx.restore();
     }
 
     // ── Animation tick ────────────────────────────────────────
@@ -2023,8 +2008,7 @@
 
         ctx.save();
         ctx.translate(n.x, n.y);
-        ctx.rotate(n.rot);
-        drawShape(n.shape, n.size, n.alpha);
+        drawShape(n.shape, n.size, n.alpha, n.rot);
         ctx.restore();
       }
     }
