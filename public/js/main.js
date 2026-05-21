@@ -1226,14 +1226,25 @@
     });
 
     // ── Touch trigger (mobile / iOS) ──────────────────────────
-    // 5 taps anywhere on the screen within 3 seconds
-    var tapCount = 0;
-    var tapTimer = null;
+    // Exactly 5 deliberate single-finger taps within 3 seconds.
+    // Track start position so scrolls/swipes don't count as taps.
+    var tapCount  = 0;
+    var tapTimer  = null;
+    var tapStartX = 0;
+    var tapStartY = 0;
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length === 1) {
+        tapStartX = e.touches[0].clientX;
+        tapStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
     document.addEventListener('touchend', function(e) {
       if (active) return;
-      // Ignore taps on the easter egg overlay itself
-      if (document.getElementById('easter-egg-overlay') &&
-          document.getElementById('easter-egg-overlay').classList.contains('ee-active')) return;
+      if (e.changedTouches.length !== 1) return; // ignore multi-finger gestures
+      // Ignore if finger moved more than 12px (scroll / swipe)
+      var dx = e.changedTouches[0].clientX - tapStartX;
+      var dy = e.changedTouches[0].clientY - tapStartY;
+      if (dx * dx + dy * dy > 144) return;
       tapCount++;
       clearTimeout(tapTimer);
       tapTimer = setTimeout(function() { tapCount = 0; }, 3000);
@@ -1305,9 +1316,8 @@
         }, { passive: true });
       }
 
-      overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) dismissOverlay();
-      });
+      // Intentionally no background-tap dismiss — users must use the
+      // explicit [ dismiss ] / [ back to site ] buttons to exit.
     }
 
     // ── GLSL black hole renderer — same shader as the hero ────
