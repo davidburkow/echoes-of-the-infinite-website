@@ -1194,7 +1194,8 @@
     let   noiseRafId      = null;
     let   eeRafId         = null;
     let   eeThreeRenderer = null;
-    let   autoDismissTimer = null;
+    let   autoDismissTimer  = null;
+    let   iosStaticInterval = null;
 
     // isIOS is declared at module level (top of IIFE)
 
@@ -1605,6 +1606,21 @@
         // ── iOS lightweight path — no WebGL, no canvas noise ────
         overlay.classList.add('ee-active', 'ee-ios');
         playEEAudio();
+
+        // Cycle SVG feTurbulence seed ~12×/sec — single attribute write per frame,
+        // GPU re-renders the noise pattern for free, giving flickering static effect.
+        var staticTurb = document.querySelector('#ee-static-filter feTurbulence');
+        var staticSeed = 1;
+        iosStaticInterval = setInterval(function() {
+          staticSeed = (staticSeed % 99) + 1;
+          if (staticTurb) staticTurb.setAttribute('seed', staticSeed);
+        }, 80);
+        // Static fades out after ~1.2s (matches CSS animation), stop cycling then
+        setTimeout(function() {
+          clearInterval(iosStaticInterval);
+          iosStaticInterval = null;
+        }, 1400);
+
         setTimeout(function() { spitOutText(content); }, 600);
         // Transition to party screen after reading time — no auto-dismiss after
         autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 7000);
@@ -1685,6 +1701,8 @@
       if (!overlay || !active) return;
 
       clearTimeout(autoDismissTimer);
+      clearInterval(iosStaticInterval);
+      iosStaticInterval = null;
       stopNoise();
 
       var content  = overlay.querySelector('.ee-content');
