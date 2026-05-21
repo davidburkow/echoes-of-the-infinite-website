@@ -1666,21 +1666,28 @@
         staticRafId = requestAnimationFrame(drawIosStatic);
 
         // ── 600ms: reveal text ──────────────────────────────────
+        // rAF inside the timeout ensures the browser has completed at least
+        // one layout/paint pass after the overlay became display:flex.
+        // On first trigger the overlay DOM is brand-new; without rAF, GSAP
+        // may try to tween an element that hasn't been composited yet and
+        // silently skip the animation.
         setTimeout(function() {
           content.classList.add('revealed');
-          // Force visibility + opacity in case GSAP hasn't loaded or is slow
           content.style.visibility = 'visible';
           content.style.opacity    = '0';
-          // Set children visible so parent fade controls everything
           var kids = content.querySelectorAll(
             '.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
           kids.forEach(function(k) { k.style.opacity = '1'; });
-          if (typeof gsap !== 'undefined') {
-            gsap.to(content, { opacity: 1, duration: 0.8, ease: 'power2.out' });
-          } else {
-            content.style.transition = 'opacity 0.8s ease';
-            setTimeout(function() { content.style.opacity = '1'; }, 20);
-          }
+          requestAnimationFrame(function() {
+            if (typeof gsap !== 'undefined') {
+              gsap.fromTo(content,
+                { opacity: 0 },
+                { opacity: 1, duration: 0.8, ease: 'power2.out' });
+            } else {
+              content.style.transition = 'opacity 0.8s ease';
+              content.style.opacity    = '1';
+            }
+          });
         }, 600);
 
         // Transition to party screen after reading time
