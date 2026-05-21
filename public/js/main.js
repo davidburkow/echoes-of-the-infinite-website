@@ -1739,11 +1739,13 @@
   }
 
   /* ===========================================================
-     SACRED GEOMETRY CURSOR
-     A golden Flower of Life / hexagram mandala softly illuminates
-     wherever the mouse rests. Brightens when still, dims when moving.
-     Two counter-rotating layers give it organic life.
-     All canvas drawing — zero DOM reflow, zero GSAP dependency.
+     SACRED GEOMETRY CURSOR — REVEAL SYSTEM
+     The entire page is invisibly tiled with a hexagonal grid of
+     sacred geometry panels (6 shape types, deterministically placed).
+     Moving the cursor acts like a torch: panels near the cursor path
+     light up in gold and slowly fade back to invisible.
+     A rolling trail of cursor positions means directional movement
+     reveals a glowing swath of geometry in your wake.
   =========================================================== */
   function initSacredGeoCursor() {
     var canvas = document.createElement('canvas');
@@ -1754,154 +1756,277 @@
     document.body.appendChild(canvas);
 
     var ctx = canvas.getContext('2d');
+    var W = 0, H = 0;
+
+    // ── Hexagonal grid of sacred geometry panels ──────────────
+    var CELL      = 115;     // spacing between panel centers
+    var REVEAL_R  = 140;     // illumination radius per trail point
+    var SHAPES    = ['hexagram', 'seed', 'hexagon', 'triangle', 'vesica', 'pentagon'];
+    var nodes     = [];
+
+    function shapeAt(c, r) {
+      // Deterministic but varied — same grid every session
+      return SHAPES[Math.abs(c * 3 + r * 7 + c * r * 2) % SHAPES.length];
+    }
+
+    function buildGrid() {
+      nodes = [];
+      var cols = Math.ceil(W / CELL) + 2;
+      var rows = Math.ceil(H / (CELL * 0.866)) + 2;
+      for (var r = 0; r <= rows; r++) {
+        for (var c = 0; c <= cols; c++) {
+          // Hex grid: odd rows offset by half a cell
+          var x = c * CELL + (r % 2 === 0 ? 0 : CELL * 0.5);
+          var y = r * CELL * 0.866;
+          nodes.push({
+            x: x, y: y,
+            shape: shapeAt(c, r),
+            size: CELL * 0.31,
+            alpha: 0,
+            // Deterministic base rotation so grid feels like discovered geometry
+            rot: (c * 0.37 + r * 0.61) % (Math.PI * 2),
+            // Alternate rotation directions for organic feel
+            rotSpeed: ((c + r) % 2 === 0 ? 1 : -1) * 0.0035,
+          });
+        }
+      }
+    }
 
     function resize() {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      buildGrid();
     }
     resize();
     window.addEventListener('resize', resize, { passive: true });
 
-    var mx = -2000, my = -2000;  // start far offscreen
-    var vel = 0;
-    var rot1 = 0, rot2 = 0;
-    var alpha = 0, targetAlpha = 0;
+    // ── Cursor trail — rolling list of recent positions ───────
+    var trail     = [];           // { x, y, age }
+    var MAX_TRAIL = 28;           // how many points to keep
     var hasMoused = false;
 
     document.addEventListener('mousemove', function (e) {
-      var dx = e.clientX - mx, dy = e.clientY - my;
-      vel = Math.sqrt(dx * dx + dy * dy);
-      mx = e.clientX;
-      my = e.clientY;
+      trail.unshift({ x: e.clientX, y: e.clientY, age: 1.0 });
+      if (trail.length > MAX_TRAIL) trail.length = MAX_TRAIL;
       hasMoused = true;
     }, { passive: true });
 
-    // ── Draw one sacred geometry mandala ──────────────────────
-    function drawGeo(cx, cy, r, rot, a) {
+    // ── Shape drawing — 6 sacred geometry types ──────────────
+    function drawShape(shape, r, a) {
       if (a < 0.004) return;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(rot);
-      ctx.globalAlpha = a;
+      var i, ang, x, y;
+      ctx.strokeStyle = 'rgba(212,175,55,1)';
+      ctx.shadowColor = 'rgba(212,175,55,0.65)';
+      ctx.shadowBlur  = 12;
 
-      // Golden glow
-      ctx.shadowColor  = 'rgba(212,175,55,0.7)';
-      ctx.shadowBlur   = 10;
+      switch (shape) {
 
-      var gold  = 'rgba(212,175,55,1)';
-      var gold2 = 'rgba(255,210,60,1)';
-      var i, ang, px, py;
+        case 'hexagram': // Star of David — two interlocked triangles
+          ctx.lineWidth = 0.75;
+          // Upward triangle
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          for (i = 0; i < 3; i++) {
+            ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
+                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Downward triangle
+          ctx.beginPath();
+          for (i = 0; i < 3; i++) {
+            ang = (i / 3) * Math.PI * 2 + Math.PI / 2;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
+                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Containing circle
+          ctx.globalAlpha = a * 0.4;
+          ctx.lineWidth = 0.45;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.stroke();
+          // Inner hexagon
+          ctx.globalAlpha = a * 0.5;
+          ctx.beginPath();
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * r * 0.5, Math.sin(ang) * r * 0.5)
+                    : ctx.lineTo(Math.cos(ang) * r * 0.5, Math.sin(ang) * r * 0.5);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          break;
 
-      // ── Outer containing circle ───────────────────────────
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.strokeStyle = gold;
-      ctx.lineWidth   = 0.55;
-      ctx.globalAlpha = a * 0.65;
-      ctx.stroke();
+        case 'seed': // Seed of Life — center circle + 6 around
+          var cr = r * 0.52;
+          ctx.lineWidth = 0.55;
+          ctx.globalAlpha = a * 0.65;
+          ctx.beginPath();
+          ctx.arc(0, 0, cr, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = a * 0.45;
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(Math.cos(ang) * cr, Math.sin(ang) * cr, cr, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          // Outer containing circle
+          ctx.globalAlpha = a * 0.3;
+          ctx.lineWidth = 0.4;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
 
-      // ── Outer hexagon inscribed in circle ────────────────
-      ctx.beginPath();
-      for (i = 0; i < 6; i++) {
-        ang = (i / 6) * Math.PI * 2;
-        px  = Math.cos(ang) * r;
-        py  = Math.sin(ang) * r;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        case 'hexagon': // Hexagon with spokes + inner ring
+          ctx.lineWidth = 0.7;
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
+                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Spokes to center
+          ctx.globalAlpha = a * 0.3;
+          ctx.lineWidth = 0.4;
+          for (i = 0; i < 6; i++) {
+            ang = (i / 6) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            ctx.stroke();
+          }
+          // Inner circle
+          ctx.globalAlpha = a * 0.5;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+
+        case 'triangle': // Equilateral triangle with inscribed circle + medians
+          ctx.lineWidth = 0.75;
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          for (i = 0; i < 3; i++) {
+            ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
+                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Inscribed circle
+          ctx.globalAlpha = a * 0.45;
+          ctx.lineWidth = 0.45;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.48, 0, Math.PI * 2);
+          ctx.stroke();
+          // Medians from each vertex to centroid
+          ctx.globalAlpha = a * 0.3;
+          ctx.lineWidth = 0.4;
+          for (i = 0; i < 3; i++) {
+            ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            ctx.lineTo(0, 0);
+            ctx.stroke();
+          }
+          break;
+
+        case 'vesica': // Vesica Piscis — two overlapping circles
+          var off = r * 0.5;
+          ctx.lineWidth = 0.6;
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          ctx.arc(-off, 0, r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(off, 0, r, 0, Math.PI * 2);
+          ctx.stroke();
+          // Enclosing rectangle (vesica proportions)
+          ctx.globalAlpha = a * 0.25;
+          ctx.lineWidth = 0.35;
+          ctx.strokeRect(-off, -r, r, r * 2);
+          break;
+
+        case 'pentagon': // Pentagon with inner pentagram
+          ctx.lineWidth = 0.7;
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          for (i = 0; i < 5; i++) {
+            ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
+            i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r)
+                    : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Inner pentagram (skip-2 connections)
+          ctx.globalAlpha = a * 0.55;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          for (i = 0; i < 5; i++) {
+            var a1 = (i / 5) * Math.PI * 2 - Math.PI / 2;
+            var a2 = ((i + 2) / 5) * Math.PI * 2 - Math.PI / 2;
+            ctx.moveTo(Math.cos(a1) * r, Math.sin(a1) * r);
+            ctx.lineTo(Math.cos(a2) * r, Math.sin(a2) * r);
+          }
+          ctx.stroke();
+          break;
       }
-      ctx.closePath();
-      ctx.strokeStyle = gold;
-      ctx.lineWidth   = 0.45;
-      ctx.globalAlpha = a * 0.45;
-      ctx.stroke();
-
-      // ── Flower of Life — center + 6 petal circles ────────
-      var pr = r * 0.5;
-      ctx.strokeStyle = gold;
-      ctx.lineWidth   = 0.4;
-      ctx.globalAlpha = a * 0.35;
-
-      ctx.beginPath();
-      ctx.arc(0, 0, pr, 0, Math.PI * 2);
-      ctx.stroke();
-
-      for (i = 0; i < 6; i++) {
-        ang = (i / 6) * Math.PI * 2;
-        ctx.beginPath();
-        ctx.arc(Math.cos(ang) * pr, Math.sin(ang) * pr, pr, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      // ── Hexagram (Star of David — two interlocked triangles)
-      var tr = r * 0.62;
-      ctx.strokeStyle = gold2;
-      ctx.lineWidth   = 0.65;
-      ctx.globalAlpha = a * 0.9;
-
-      // Triangle pointing up
-      ctx.beginPath();
-      for (i = 0; i < 3; i++) {
-        ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
-        i === 0 ? ctx.moveTo(Math.cos(ang) * tr, Math.sin(ang) * tr)
-                : ctx.lineTo(Math.cos(ang) * tr, Math.sin(ang) * tr);
-      }
-      ctx.closePath();
-      ctx.stroke();
-
-      // Triangle pointing down
-      ctx.beginPath();
-      for (i = 0; i < 3; i++) {
-        ang = (i / 3) * Math.PI * 2 + Math.PI / 2;
-        i === 0 ? ctx.moveTo(Math.cos(ang) * tr, Math.sin(ang) * tr)
-                : ctx.lineTo(Math.cos(ang) * tr, Math.sin(ang) * tr);
-      }
-      ctx.closePath();
-      ctx.stroke();
-
-      // ── Inner hexagon (at intersection of triangles) ──────
-      var ir = r * 0.36;
-      ctx.beginPath();
-      for (i = 0; i < 6; i++) {
-        ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
-        px  = Math.cos(ang) * ir;
-        py  = Math.sin(ang) * ir;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = gold;
-      ctx.lineWidth   = 0.4;
-      ctx.globalAlpha = a * 0.5;
-      ctx.stroke();
-
-      // ── Center dot ────────────────────────────────────────
-      ctx.beginPath();
-      ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
-      ctx.fillStyle   = gold2;
-      ctx.globalAlpha = a * 0.7;
-      ctx.fill();
-
-      ctx.restore();
     }
 
-    // ── Animation loop ────────────────────────────────────────
+    // ── Animation tick ────────────────────────────────────────
     function tick() {
       requestAnimationFrame(tick);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, W, H);
 
       if (!hasMoused) return;
 
-      // Velocity decays each frame — mouse stillness = brighter
-      vel         *= 0.82;
-      targetAlpha  = Math.max(0.06, 0.22 - vel * 0.005);
-      alpha       += (targetAlpha - alpha) * 0.055;
+      // Decay trail ages — this controls how long the reveal lingers
+      for (var t = 0; t < trail.length; t++) {
+        trail[t].age *= 0.955; // ~1.5–2s full fade
+      }
+      // Drop fully dead trail points
+      while (trail.length && trail[trail.length - 1].age < 0.02) trail.pop();
 
-      // Counter-rotating layers
-      rot1 += 0.0025;
-      rot2 -= 0.0015;
+      // Update and draw each panel
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
 
-      // Inner layer — tighter, brighter
-      drawGeo(mx, my, 72, rot1, alpha);
-      // Outer layer — larger, more transparent, slower counter-rotation
-      drawGeo(mx, my, 138, rot2, alpha * 0.4);
+        // Find the brightest trail point near this node
+        var peak = 0;
+        for (var t = 0; t < trail.length; t++) {
+          var dx   = trail[t].x - n.x;
+          var dy   = trail[t].y - n.y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < REVEAL_R) {
+            var illum = (1 - dist / REVEAL_R) * trail[t].age * 0.82;
+            if (illum > peak) peak = illum;
+          }
+        }
+
+        // Snap up to peak brightness, then let trail decay handle fade-out
+        if (peak > n.alpha) n.alpha = peak;
+        // Gentle additional decay so panels dim smoothly even if trail is still near
+        n.alpha *= 0.978;
+        if (n.alpha < 0.004) { n.alpha = 0; continue; }
+
+        // Rotate while visible
+        n.rot += n.rotSpeed;
+
+        ctx.save();
+        ctx.translate(n.x, n.y);
+        ctx.rotate(n.rot);
+        drawShape(n.shape, n.size, n.alpha);
+        ctx.restore();
+      }
     }
 
     tick();
