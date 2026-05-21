@@ -151,6 +151,8 @@ a, button, [role="button"] {
   background-size: 256px 256px;
   animation: grain 0.4s steps(1) infinite;
   mix-blend-mode: screen;
+  /* Keep on own GPU layer so steps() animation doesn't trigger page recomposition */
+  will-change: transform;
 }
 
 @keyframes grain {
@@ -243,13 +245,13 @@ body.cursor-hover #cursor-ring {
   padding: calc(2rem + env(safe-area-inset-top)) var(--gutter) 2rem;
   /* Explicit transparent background prevents undefined repaint state */
   background: rgba(0, 0, 3, 0);
-  /* Promote to its own GPU compositing layer so the WebGL canvas
-     repainting at 60 fps doesn't drag the nav into every composite pass */
+  /* translateZ(0) promotes nav to its own GPU layer. Do NOT use
+     will-change:background — it pre-allocates a background texture that
+     Chrome re-samples every WebGL frame, causing a 1-frame black flash. */
   transform: translateZ(0);
-  will-change: background, padding;
+  will-change: transform;
   transition: padding 0.4s var(--ease-out-expo),
-              background 0.4s,
-              backdrop-filter 0.4s;
+              background 0.4s;
 }
 #nav.scrolled {
   /* Solid background instead of backdrop-filter — backdrop-filter over
@@ -474,6 +476,8 @@ body.cursor-hover #cursor-ring {
   z-index: 0;
   /* iOS: allow page scrolling over canvas, prevent touch conflicts */
   touch-action: pan-y;
+  /* Isolate WebGL repaints to this layer — prevents bubbling up to nav */
+  will-change: transform;
 }
 
 .hero-vignette {
