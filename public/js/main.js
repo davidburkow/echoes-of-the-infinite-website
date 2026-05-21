@@ -1170,7 +1170,7 @@
     const original = el.innerText;
     const chars    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789∞◊△○';
     let frame      = 0;
-    const FRAMES   = 54;  // 3× original (18) — characters linger scrambled longer
+    const FRAMES   = 36;  // 2× original (18) — halfway between original and 3× slower
 
     const interval = setInterval(() => {
       el.innerText = original
