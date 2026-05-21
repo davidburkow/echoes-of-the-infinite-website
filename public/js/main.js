@@ -1297,11 +1297,11 @@
 
       content.querySelector('.ee-dismiss').addEventListener('click', dismissOverlay);
 
-      // iOS save button — must call share directly from tap (gesture context)
+      // iOS save button — iosShareFile() uses pre-fetched blob, no async gap
       if (isIOS) {
         content.querySelector('.ee-save-btn').addEventListener('touchend', function(e) {
           e.stopPropagation();
-          iosShareFile(FILE_URL, DL_NAME);
+          iosShareFile();
         }, { passive: true });
       }
 
@@ -1565,22 +1565,36 @@
     }
 
     // ── Main firing sequence ──────────────────────────────────
-    // ── iOS Share Sheet — triggers native "Save to Files" ────────
-    function iosShareFile(url, filename) {
-      fetch(url)
+    // ── iOS pre-fetched track blob ────────────────────────────
+    // navigator.share({files}) MUST be called synchronously within a user
+    // gesture. Fetching the blob async inside the tap handler breaks this
+    // requirement — iOS refuses to open the share sheet after an await.
+    // Solution: pre-fetch the blob as soon as the overlay opens and cache it
+    // as a File object. The tap handler then calls share() with no async gap.
+    var iosTrackFile = null;
+    function preloadTrackBlob() {
+      if (iosTrackFile) return;
+      fetch(FILE_URL)
         .then(function(r) { return r.blob(); })
         .then(function(blob) {
-          var file = new File([blob], filename, { type: blob.type || 'audio/wav' });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({ files: [file], title: filename });
-          } else {
-            // Fallback: open file in new tab so user can long-press to save
-            window.open(url, '_blank');
-          }
+          iosTrackFile = new File([blob], DL_NAME, { type: 'audio/wav' });
         })
-        .catch(function() {
-          window.open(url, '_blank');
-        });
+        .catch(function() {});
+    }
+
+    // ── iOS Share Sheet — triggers native "Save to Files" ────────
+    function iosShareFile() {
+      if (!iosTrackFile) {
+        // File not ready yet — fall back to opening the raw URL
+        window.open(FILE_URL, '_blank');
+        return;
+      }
+      if (navigator.canShare && navigator.canShare({ files: [iosTrackFile] })) {
+        navigator.share({ files: [iosTrackFile], title: DL_NAME })
+          .catch(function() { window.open(FILE_URL, '_blank'); });
+      } else {
+        window.open(FILE_URL, '_blank');
+      }
     }
 
     function fireEasterEgg() {
@@ -1604,26 +1618,72 @@
         content.style.opacity = '0';
       }
       if (isIOS) {
-        // ── iOS lightweight path — no WebGL, no canvas noise ────
+        // ── iOS lightweight path — no WebGL, canvas-drawn green static ──
         overlay.classList.add('ee-active', 'ee-ios');
         playEEAudio();
+        preloadTrackBlob(); // fetch WAV blob now so share sheet is instant later
 
-        // Cycle SVG feTurbulence seed ~12×/sec — single attribute write per frame,
-        // GPU re-renders the noise pattern for free, giving flickering static effect.
-        var staticTurb = document.querySelector('#ee-static-filter feTurbulence');
-        var staticSeed = 1;
-        iosStaticInterval = setInterval(function() {
-          staticSeed = (staticSeed % 99) + 1;
-          if (staticTurb) staticTurb.setAttribute('seed', staticSeed);
-        }, 80);
-        // Static fades out after ~1.2s (matches CSS animation), stop cycling then
+        // Canvas-based green static — more reliable than SVG filter on ::before
+        // in iOS Safari (which sometimes ignores filter: url(#id) on pseudo-elements).
+        // Low-res 80×80 canvas scaled up via CSS — cheap on iOS GPU.
+        var staticCanvas = document.createElement('canvas');
+        staticCanvas.width  = 80;
+        staticCanvas.height = 80;
+        staticCanvas.style.cssText =
+          'position:absolute;inset:0;width:100%;height:100%;' +
+          'image-rendering:pixelated;pointer-events:none;z-index:3;opacity:1;';
+        overlay.appendChild(staticCanvas);
+        var sCtx = staticCanvas.getContext('2d');
+
+        var staticRafId = null;
+        var staticStart = Date.now();
+        var lastStaticFrame = 0;
+        function drawIosStatic(now) {
+          staticRafId = requestAnimationFrame(drawIosStatic);
+          if (now - lastStaticFrame < 50) return; // ~20 fps cap
+          lastStaticFrame = now;
+          var img = sCtx.createImageData(80, 80);
+          var d = img.data;
+          for (var i = 0; i < d.length; i += 4) {
+            var on = Math.random() > 0.48;
+            var g  = on ? (80 + (Math.random() * 175 | 0)) : 0;
+            d[i]   = 0;   // R
+            d[i+1] = g;   // G
+            d[i+2] = 0;   // B
+            d[i+3] = on ? (140 + (Math.random() * 115 | 0)) : 0;
+          }
+          sCtx.putImageData(img, 0, 0);
+          // Fade out over 1.2 s
+          var elapsed = Date.now() - staticStart;
+          var opacity = Math.max(0, 1 - elapsed / 1200);
+          staticCanvas.style.opacity = opacity;
+          if (opacity <= 0) {
+            cancelAnimationFrame(staticRafId);
+            staticRafId = null;
+            if (staticCanvas.parentNode) staticCanvas.parentNode.removeChild(staticCanvas);
+          }
+        }
+        staticRafId = requestAnimationFrame(drawIosStatic);
+
+        // ── 600ms: reveal text ──────────────────────────────────
         setTimeout(function() {
-          clearInterval(iosStaticInterval);
-          iosStaticInterval = null;
-        }, 1400);
+          content.classList.add('revealed');
+          // Force visibility + opacity in case GSAP hasn't loaded or is slow
+          content.style.visibility = 'visible';
+          content.style.opacity    = '0';
+          // Set children visible so parent fade controls everything
+          var kids = content.querySelectorAll(
+            '.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
+          kids.forEach(function(k) { k.style.opacity = '1'; });
+          if (typeof gsap !== 'undefined') {
+            gsap.to(content, { opacity: 1, duration: 0.8, ease: 'power2.out' });
+          } else {
+            content.style.transition = 'opacity 0.8s ease';
+            setTimeout(function() { content.style.opacity = '1'; }, 20);
+          }
+        }, 600);
 
-        setTimeout(function() { spitOutText(content); }, 600);
-        // Transition to party screen after reading time — no auto-dismiss after
+        // Transition to party screen after reading time
         autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 7000);
         return;
       }
@@ -1705,6 +1765,9 @@
       clearInterval(iosStaticInterval);
       iosStaticInterval = null;
       stopNoise();
+      // Remove iOS canvas static if dismiss fires before it finishes fading
+      var oldStatic = overlay ? overlay.querySelector('canvas[style*="pixelated"]') : null;
+      if (oldStatic && oldStatic.parentNode) oldStatic.parentNode.removeChild(oldStatic);
 
       var content  = overlay.querySelector('.ee-content');
 
