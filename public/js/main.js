@@ -1312,6 +1312,7 @@
         '<p class="ee-unlock">You cracked it.</p>' +
         '<p class="ee-artist">BURKO — Delusion</p>' +
         '<p class="ee-coming">You\'ve unlocked the unreleased track, the first taste<br>of Echoes of the Infinite...<br>but the real party awaits.</p>' +
+        '<a class="ee-presave-btn" href="https://laylo.com/burko/thqpCw" target="_blank" rel="noopener noreferrer">Pre-Save the Track</a>' +
         (isIOS ? '<button class="ee-save-btn">[ save file ]</button>' : '') +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 
@@ -1528,14 +1529,14 @@
         content.style.opacity = '1';
         content.style.transform = 'none';
         // Also override individual child CSS opacity: 0
-        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
+        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-presave-btn,.ee-save-btn,.ee-dismiss');
         kids.forEach(function(k) { k.style.opacity = '1'; });
         return;
       }
 
       // Each child element has opacity:0 in CSS — override so the parent
       // animation controls overall visibility (children must be fully opaque).
-      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
+      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-presave-btn,.ee-save-btn,.ee-dismiss');
       gsap.set(kids, { opacity: 1 });
 
       // iOS: simple fade-in — no filters/rotation/extreme scale (too heavy for mobile GPU)
@@ -1700,7 +1701,7 @@
           content.style.visibility = 'visible';
           content.style.opacity    = '0';
           var kids = content.querySelectorAll(
-            '.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-save-btn,.ee-dismiss');
+            '.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-presave-btn,.ee-save-btn,.ee-dismiss');
           kids.forEach(function(k) { k.style.opacity = '1'; });
           requestAnimationFrame(function() {
             if (typeof gsap !== 'undefined') {

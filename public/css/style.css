@@ -1922,6 +1922,31 @@ footer {
   letter-spacing: 0.25em;
   text-transform: uppercase;
 }
+/* Screen 1 pre-save CTA — main action before party screen */
+.ee-presave-btn {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--blue);
+  padding: 1.1rem 3rem;
+  border-radius: 2px;
+  text-decoration: none;
+  margin-bottom: 1.6rem;
+  opacity: 0;
+  box-shadow: 0 0 30px rgba(113, 112, 243, 0.55), 0 0 70px rgba(113, 112, 243, 0.25);
+  transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ee-presave-btn:hover {
+  background: var(--alabaster);
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(113, 112, 243, 0.7), 0 0 90px rgba(113, 112, 243, 0.35);
+}
+.ee-presave-btn:active { transform: translateY(0); }
+
 .ee-tickets-btn {
   display: inline-block;
   font-family: var(--font-display);
