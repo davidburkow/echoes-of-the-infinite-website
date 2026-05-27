@@ -1715,7 +1715,7 @@
         }, 600);
 
         // Transition to party screen after reading time
-        autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 7000);
+        autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 10000);
         return;
       }
 
@@ -1751,8 +1751,8 @@
       // ── 1600ms: BH already slowing, text spit out begins
       setTimeout(function() { spitOutText(content); }, 1600);
 
-      // ── 9000ms: transition to party screen (no auto-dismiss after that)
-      autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 9000);
+      // ── 12000ms: transition to party screen (no auto-dismiss after that)
+      autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 12000);
     }
 
     // ── Party screen — replaces unlock screen, no auto-dismiss ──

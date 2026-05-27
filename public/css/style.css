@@ -1849,7 +1849,7 @@ footer {
 }
 .ee-coming {
   font-family: var(--font-body);
-  font-size: clamp(0.85rem, 1.3vw, 1rem);
+  font-size: clamp(1rem, 1.55vw, 1.15rem);
   letter-spacing: 0.12em;
   line-height: 1.9;
   font-style: italic;
