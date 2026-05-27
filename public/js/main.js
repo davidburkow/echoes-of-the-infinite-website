@@ -1196,10 +1196,10 @@
               Green CRT static erupts on top of the hero BH shader.
        0ms    Same GLSL black hole renders in overlay at 7x speed.
        600ms  Green static fades.
-       3000ms BH slows to normal speed. Text spit out (reverse physics).
-       5500ms Text fully readable.
-       2500ms Download fires silently.
-       10000ms Auto-dismiss. Hero resumes.
+       1600ms Text spit out (reverse physics).
+       Screen 1: "You cracked it" — user clicks Step 2 to save file.
+       Screen 2 (Step 3): Pre-save — user clicks Laylo link, then Step 4 to advance.
+       Screen 3 (Step 4): Party invite — user clicks Get Tickets or back to site.
   =========================================================== */
   function initEasterEgg() {
     const SECRET   = 'unreleased';
@@ -1312,7 +1312,8 @@
         '<p class="ee-unlock">You cracked it.</p>' +
         '<p class="ee-artist">BURKO — Delusion</p>' +
         '<p class="ee-coming">You\'ve unlocked the unreleased track, the first taste<br>of Echoes of the Infinite...<br>but the real party awaits.</p>' +
-        (isIOS ? '<button class="ee-save-btn">[ save file ]</button>' : '') +
+        '<p class="ee-step1-label">Ready? Follow the hunt.</p>' +
+        '<button class="ee-step2-btn">Step 2 &nbsp;&rarr;&nbsp; Save the File</button>' +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 
       overlay.appendChild(glCanvas);
@@ -1322,13 +1323,32 @@
 
       content.querySelector('.ee-dismiss').addEventListener('click', dismissOverlay);
 
-      // iOS save button — iosShareFile() uses pre-fetched blob, no async gap
-      if (isIOS) {
-        content.querySelector('.ee-save-btn').addEventListener('touchend', function(e) {
+      // Step 2: Save the File — triggers download/share then advances to presave screen.
+      // On iOS we use the native share sheet (iosShareFile uses the pre-fetched blob).
+      // On desktop we create a hidden anchor and click it — same as the old silent download
+      // but now it's user-initiated so browsers won't block it.
+      (function() {
+        var step2Btn = content.querySelector('.ee-step2-btn');
+        function handleStep2(e) {
           e.stopPropagation();
-          iosShareFile();
-        }, { passive: true });
-      }
+          if (isIOS) {
+            iosShareFile();
+          } else {
+            var a = document.createElement('a');
+            a.href = FILE_URL; a.download = DL_NAME;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+          showPresaveScreen(content);
+        }
+        if (isIOS) {
+          step2Btn.addEventListener('touchend', handleStep2, { passive: true });
+        } else {
+          step2Btn.addEventListener('click', handleStep2);
+        }
+      })();
 
       // Intentionally no background-tap dismiss — users must use the
       // explicit [ dismiss ] / [ back to site ] buttons to exit.
@@ -1528,14 +1548,14 @@
         content.style.opacity = '1';
         content.style.transform = 'none';
         // Also override individual child CSS opacity: 0
-        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-presave-btn,.ee-save-btn,.ee-dismiss');
+        var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-step1-label,.ee-presave-btn,.ee-save-btn,.ee-step2-btn,.ee-dismiss');
         kids.forEach(function(k) { k.style.opacity = '1'; });
         return;
       }
 
       // Each child element has opacity:0 in CSS — override so the parent
       // animation controls overall visibility (children must be fully opaque).
-      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-presave-btn,.ee-save-btn,.ee-dismiss');
+      var kids = content.querySelectorAll('.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-step1-label,.ee-presave-btn,.ee-save-btn,.ee-step2-btn,.ee-dismiss');
       gsap.set(kids, { opacity: 1 });
 
       // iOS: simple fade-in — no filters/rotation/extreme scale (too heavy for mobile GPU)
@@ -1700,7 +1720,7 @@
           content.style.visibility = 'visible';
           content.style.opacity    = '0';
           var kids = content.querySelectorAll(
-            '.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-presave-btn,.ee-save-btn,.ee-dismiss');
+            '.ee-unlock,.ee-artist,.ee-track,.ee-coming,.ee-step1-label,.ee-presave-btn,.ee-save-btn,.ee-step2-btn,.ee-dismiss');
           kids.forEach(function(k) { k.style.opacity = '1'; });
           requestAnimationFrame(function() {
             if (typeof gsap !== 'undefined') {
@@ -1714,8 +1734,6 @@
           });
         }, 600);
 
-        // Step 1 → Step 2: advance to pre-save screen after reading time
-        autoDismissTimer = setTimeout(function() { showPresaveScreen(content); }, 10000);
         return;
       }
 
@@ -1738,35 +1756,22 @@
       // ── 950ms: stop the noise draw loop ──────────────────────
       setTimeout(stopNoise, 950);
 
-      // ── 2500ms: silent download ───────────────────────────────
-      setTimeout(function() {
-        var a = document.createElement('a');
-        a.href = FILE_URL; a.download = DL_NAME;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }, 2500);
-
       // ── 1600ms: BH already slowing, text spit out begins
       setTimeout(function() { spitOutText(content); }, 1600);
-
-      // ── 12000ms: Step 1 → Step 2 (pre-save screen)
-      autoDismissTimer = setTimeout(function() { showPresaveScreen(content); }, 12000);
     }
 
-    // ── Step 2: Pre-save screen ───────────────────────────────
+    // ── Step 3: Pre-save screen ───────────────────────────────
     function showPresaveScreen(content) {
       if (!content) return;
       gsap.to(content, { opacity: 0, duration: 0.7, ease: 'power2.in',
         onComplete: function() {
           content.innerHTML =
-            '<p class="ee-step-label">Step 2 of 3</p>' +
+            '<p class="ee-step-label">Step 3 of 4</p>' +
             '<p class="ee-party-title" style="font-size:clamp(2.2rem,6vw,4rem)">Pre-Save<br>the Track</p>' +
             '<p class="ee-step-sub">Be the first to hear Delusion when it drops.</p>' +
             '<a class="ee-presave-btn" href="https://laylo.com/burko/thqpCw"' +
             ' target="_blank" rel="noopener noreferrer">Pre-Save Now</a>' +
-            '<button class="ee-step-next">Step 3: The Party &rarr;</button>';
+            '<button class="ee-step-next">Step 4: Get Tickets &rarr;</button>';
 
           var kids = content.querySelectorAll(
             '.ee-step-label,.ee-party-title,.ee-step-sub,.ee-presave-btn,.ee-step-next'
@@ -1779,9 +1784,6 @@
 
           gsap.set(content, { opacity: 0 });
           gsap.to(content, { opacity: 1, duration: 0.9, ease: 'power2.out' });
-
-          // Auto-advance to party screen after 12s if user doesn't click
-          autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 12000);
         }
       });
     }
@@ -1794,7 +1796,7 @@
         onComplete: function() {
           // Swap content to party screen
           content.innerHTML =
-            '<p class="ee-step-label">Step 3 of 3</p>' +
+            '<p class="ee-step-label">Step 4 of 4</p>' +
             '<p class="ee-party-eyebrow">You are invited.</p>' +
             '<p class="ee-party-title">Label Launch<br>Party</p>' +
             '<p class="ee-party-sub">BURKO presents: EOTI 001</p>' +
