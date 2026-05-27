@@ -1333,6 +1333,17 @@
           e.stopPropagation();
           if (isIOS) {
             iosShareFile();
+            // iOS: share sheet opens as a native overlay — don't auto-transition.
+            // Instead, morph the button into a "Step 3 →" CTA so the user can
+            // continue the hunt after they dismiss the share sheet.
+            step2Btn.removeEventListener('touchend', handleStep2);
+            step2Btn.textContent = 'Step 3  →  Pre-Save the Track';
+            var lbl = content.querySelector('.ee-step1-label');
+            if (lbl) lbl.textContent = 'File saved. Continue the hunt.';
+            step2Btn.addEventListener('touchend', function(ev) {
+              ev.stopPropagation();
+              showPresaveScreen(content);
+            }, { passive: true });
           } else {
             var a = document.createElement('a');
             a.href = FILE_URL; a.download = DL_NAME;
@@ -1340,8 +1351,8 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            showPresaveScreen(content);
           }
-          showPresaveScreen(content);
         }
         if (isIOS) {
           step2Btn.addEventListener('touchend', handleStep2, { passive: true });
