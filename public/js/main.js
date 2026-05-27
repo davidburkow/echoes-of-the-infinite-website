@@ -1312,7 +1312,6 @@
         '<p class="ee-unlock">You cracked it.</p>' +
         '<p class="ee-artist">BURKO — Delusion</p>' +
         '<p class="ee-coming">You\'ve unlocked the unreleased track, the first taste<br>of Echoes of the Infinite...<br>but the real party awaits.</p>' +
-        '<a class="ee-presave-btn" href="https://laylo.com/burko/thqpCw" target="_blank" rel="noopener noreferrer">Pre-Save the Track</a>' +
         (isIOS ? '<button class="ee-save-btn">[ save file ]</button>' : '') +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 
@@ -1715,8 +1714,8 @@
           });
         }, 600);
 
-        // Transition to party screen after reading time
-        autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 10000);
+        // Step 1 → Step 2: advance to pre-save screen after reading time
+        autoDismissTimer = setTimeout(function() { showPresaveScreen(content); }, 10000);
         return;
       }
 
@@ -1752,11 +1751,42 @@
       // ── 1600ms: BH already slowing, text spit out begins
       setTimeout(function() { spitOutText(content); }, 1600);
 
-      // ── 12000ms: transition to party screen (no auto-dismiss after that)
-      autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 12000);
+      // ── 12000ms: Step 1 → Step 2 (pre-save screen)
+      autoDismissTimer = setTimeout(function() { showPresaveScreen(content); }, 12000);
     }
 
-    // ── Party screen — replaces unlock screen, no auto-dismiss ──
+    // ── Step 2: Pre-save screen ───────────────────────────────
+    function showPresaveScreen(content) {
+      if (!content) return;
+      gsap.to(content, { opacity: 0, duration: 0.7, ease: 'power2.in',
+        onComplete: function() {
+          content.innerHTML =
+            '<p class="ee-step-label">Step 2 of 3</p>' +
+            '<p class="ee-party-title" style="font-size:clamp(2.2rem,6vw,4rem)">Pre-Save<br>the Track</p>' +
+            '<p class="ee-step-sub">Be the first to hear Delusion when it drops.</p>' +
+            '<a class="ee-presave-btn" href="https://laylo.com/burko/thqpCw"' +
+            ' target="_blank" rel="noopener noreferrer">Pre-Save Now</a>' +
+            '<button class="ee-step-next">Step 3: The Party &rarr;</button>';
+
+          var kids = content.querySelectorAll(
+            '.ee-step-label,.ee-party-title,.ee-step-sub,.ee-presave-btn,.ee-step-next'
+          );
+          gsap.set(kids, { opacity: 1 });
+
+          content.querySelector('.ee-step-next').addEventListener('click', function() {
+            showPartyScreen(content);
+          });
+
+          gsap.set(content, { opacity: 0 });
+          gsap.to(content, { opacity: 1, duration: 0.9, ease: 'power2.out' });
+
+          // Auto-advance to party screen after 12s if user doesn't click
+          autoDismissTimer = setTimeout(function() { showPartyScreen(content); }, 12000);
+        }
+      });
+    }
+
+    // ── Step 3: Party screen — no auto-dismiss ────────────────
     function showPartyScreen(content) {
       if (!content) return;
       // Fade out Screen 1
@@ -1764,6 +1794,7 @@
         onComplete: function() {
           // Swap content to party screen
           content.innerHTML =
+            '<p class="ee-step-label">Step 3 of 3</p>' +
             '<p class="ee-party-eyebrow">You are invited.</p>' +
             '<p class="ee-party-title">Label Launch<br>Party</p>' +
             '<p class="ee-party-sub">BURKO presents: EOTI 001</p>' +
@@ -1777,7 +1808,7 @@
 
           // Override child opacity:0 from CSS
           var kids = content.querySelectorAll(
-            '.ee-party-eyebrow,.ee-party-title,.ee-party-sub,.ee-party-date,.ee-tickets-btn,.ee-back'
+            '.ee-step-label,.ee-party-eyebrow,.ee-party-title,.ee-party-sub,.ee-party-date,.ee-tickets-btn,.ee-back'
           );
           gsap.set(kids, { opacity: 1 });
 
