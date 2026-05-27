@@ -1309,10 +1309,9 @@
       content.className = 'ee-content';
       content.style.transition = 'none';
       content.innerHTML =
-        '<p class="ee-unlock">You\'ve unlocked…</p>' +
-        '<p class="ee-artist">BURKO</p>' +
-        '<p class="ee-track">Delusion</p>' +
-        '<p class="ee-coming">coming soon on Echoes of the Infinite.</p>' +
+        '<p class="ee-unlock">You cracked it.</p>' +
+        '<p class="ee-artist">BURKO — Delusion</p>' +
+        '<p class="ee-coming">You\'ve unlocked the unreleased track — the first taste<br>of Echoes of the Infinite...<br>but the real party awaits.</p>' +
         (isIOS ? '<button class="ee-save-btn">[ save file ]</button>' : '') +
         '<button class="ee-dismiss">[ dismiss ]</button>';
 

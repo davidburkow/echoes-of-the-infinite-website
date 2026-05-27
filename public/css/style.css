@@ -1849,10 +1849,11 @@ footer {
 }
 .ee-coming {
   font-family: var(--font-body);
-  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
-  letter-spacing: 0.22em;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
+  letter-spacing: 0.12em;
+  line-height: 1.9;
   font-style: italic;
-  color: rgba(244, 245, 236, 0.50);
+  color: rgba(244, 245, 236, 0.55);
   text-shadow: 0 1px 8px rgba(0, 0, 3, 0.95);
   opacity: 0;
   margin-bottom: 2.5rem;
