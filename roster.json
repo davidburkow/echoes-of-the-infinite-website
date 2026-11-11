@@ -1,0 +1,7 @@
+{
+  "_comment": "Artists whose Echoes of the Infinite releases should appear on this site. Apple has no label filter, so the only way to find a label's catalogue is to ask each artist's feed and keep the rows whose copyright names the imprint. Add a line when you sign someone: find their id at https://itunes.apple.com/search?term=NAME&entity=musicArtist",
+  "artists": [
+    { "name": "BURKO", "appleArtistId": "1484762814" },
+    { "name": "Declay", "appleArtistId": "1574994849" }
+  ]
+}
