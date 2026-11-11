@@ -904,7 +904,7 @@
     const submitBtn = form ? form.querySelector('.form-submit') : null;
     if (!form || !success || !submitBtn) return;
 
-    const ENDPOINT = 'https://formsubmit.co/ajax/echoesoftheinfinite.ofc@gmail.com';
+    const ENDPOINT = 'https://formsubmit.co/ajax/transmit@echoesoftheinfinite.live';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();

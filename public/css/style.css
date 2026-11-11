@@ -1083,6 +1083,25 @@ body.cursor-hover #cursor-ring {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
 }
+.status-out {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--blue);
+}
+.status-out::before {
+  content: "";
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 8px var(--blue), 0 0 14px var(--blue);
+  animation: status-pulse 2s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.45; transform: scale(0.7); }
+}
 
 .release-ctas {
   display: flex;

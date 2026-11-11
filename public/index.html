@@ -8,18 +8,20 @@
   <!-- Open Graph / iMessage / Facebook link preview -->
   <meta property="og:type"        content="website" />
   <meta property="og:url"         content="https://echoesoftheinfinite.live/" />
-  <meta property="og:title"       content="Echoes of the Infinite" />
-  <meta property="og:description" content="Sound without boundaries. The label home of BURKO." />
-  <meta property="og:image"       content="https://echoesoftheinfinite.live/assets/images/labyrinth-ep.jpg" />
+  <!-- release:meta — generated from release.json by scripts/apply-release.mjs; do not hand-edit -->
+  <meta property="og:title"       content="BURKO — Falling Up | Echoes of the Infinite" />
+  <meta property="og:description" content="BURKO's new single 'Falling Up' is out now on Echoes of the Infinite. Sound without boundaries." />
+  <meta property="og:image"       content="https://echoesoftheinfinite.live/assets/images/falling-up.jpg" />
   <meta property="og:image:width"  content="3000" />
   <meta property="og:image:height" content="3000" />
-  <meta property="og:image:alt"    content="Echoes of the Infinite — Labyrinth EP" />
+  <meta property="og:image:alt"    content="BURKO — Falling Up (Echoes of the Infinite)" />
 
   <!-- Twitter / X card -->
   <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="Echoes of the Infinite" />
-  <meta name="twitter:description" content="Sound without boundaries. The label home of BURKO." />
-  <meta name="twitter:image"       content="https://echoesoftheinfinite.live/assets/images/labyrinth-ep.jpg" />
+  <meta name="twitter:title"       content="BURKO — Falling Up | Echoes of the Infinite" />
+  <meta name="twitter:description" content="BURKO's new single 'Falling Up' is out now on Echoes of the Infinite. Sound without boundaries." />
+  <meta name="twitter:image"       content="https://echoesoftheinfinite.live/assets/images/falling-up.jpg" />
+  <!-- /release:meta -->
   <title>Echoes of the Infinite</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -29,6 +31,39 @@
   <!-- Preload critical assets -->
   <link rel="preload" href="/assets/fonts/CormorantGaramond-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
   <link rel="preload" href="/assets/fonts/Strong.ttf" as="font" type="font/ttf" crossorigin />
+
+  <!-- If JS is disabled entirely, reveal all content that is otherwise hidden until JS runs. -->
+  <noscript>
+    <style>
+      #heroLogo, #heroTagline, #heroCta, #scrollIndicator,
+      .reveal-up, .reveal-left, .reveal-right {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    </style>
+  </noscript>
+
+  <!-- Failsafe reveal: the hero + section content starts at opacity:0 and is
+       normally revealed by main.js. But main.js loads after the three.js / GSAP /
+       Laylo CDN scripts, so if a network blocks or stalls those CDNs (captive-portal
+       wifi, weak cellular) main.js never runs and the page stays blank. This timer
+       runs independently of every external script and force-reveals content if the
+       libraries still haven't loaded, so the site is always usable. On a healthy
+       network the libraries load first, gsap is defined, and this no-ops. -->
+  <script>
+    (function () {
+      setTimeout(function () {
+        if (typeof window.gsap !== 'undefined') return; // libs loaded — main.js handles reveal
+        ['heroLogo', 'heroTagline', 'heroCta', 'scrollIndicator'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.add('revealed');
+        });
+        document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right').forEach(function (el) {
+          el.classList.add('visible');
+        });
+      }, 2500);
+    })();
+  </script>
 </head>
 <body>
 
@@ -143,7 +178,7 @@
 
       <div class="hero-cta-row" id="heroCta">
         <a href="#release" class="btn-primary magnetic-btn">
-          <span class="btn-text">First Transmission</span>
+          <span class="btn-text">Latest Transmission</span>
           <span class="btn-glow"></span>
         </a>
         <a href="#about" class="btn-ghost magnetic-btn">
@@ -229,7 +264,7 @@
             </p>
             <div class="about-stats reveal-up">
               <div class="stat">
-                <span class="stat-number" data-count="1">01</span>
+                <span class="stat-number" data-count="2">02</span>
                 <span class="stat-label">Catalog</span>
               </div>
               <div class="stat">
@@ -252,27 +287,26 @@
   </section>
 
   <!-- ============================================================
-       SECTION 3: FIRST RELEASE — BURKO: LABYRINTH EP
+       SECTION 3: LATEST RELEASE — BURKO: FALLING UP
   ============================================================ -->
   <section id="release" class="section-release">
     <div class="release-bg-texture"></div>
 
     <div class="container">
-      <!-- Section header -->
+      <!-- release:section — generated from release.json by scripts/apply-release.mjs; do not hand-edit -->
       <div class="release-header reveal-up">
-        <span class="catalog-badge">EOTI001</span>
-        <p class="section-eyebrow">First Transmission</p>
+        <span class="catalog-badge">EOTI002</span>
+        <p class="section-eyebrow">Out Now</p>
       </div>
 
       <div class="release-grid">
-        <!-- Artwork -->
         <div class="release-artwork-col reveal-left">
           <div class="artwork-frame" id="artworkFrame">
             <div class="artwork-glow-ring"></div>
             <div class="artwork-inner" id="artworkTilt">
               <img
-                src="/assets/images/labyrinth-ep.jpg"
-                alt="BURKO — Labyrinth EP"
+                src="/assets/images/falling-up.jpg"
+                alt="BURKO — Falling Up"
                 class="artwork-img"
               />
               <div class="artwork-overlay"></div>
@@ -282,13 +316,12 @@
           </div>
         </div>
 
-        <!-- Info -->
         <div class="release-info-col reveal-right">
           <div class="release-meta">
             <span class="release-artist">BURKO</span>
             <h2 class="release-title">
-              <span class="release-title-word">Labyrinth</span>
-              <span class="release-title-word accent-text">EP</span>
+              <span class="release-title-word">Falling</span>
+              <span class="release-title-word accent-text">Up</span>
             </h2>
             <div class="release-divider">
               <span class="divider-line"></span>
@@ -298,18 +331,10 @@
           </div>
 
           <p class="body-text release-desc">
-            BURKO's 'Labyrinth EP' sets the tone for Echoes of the Infinite as
-            the label's first release, leaning into the darker tones he has brought
-            through his music over the past 6 years of releases. With music
-            previously on ARMADA, Ultra, mau5trap, and Odd One Out, this EP
-            solidifies his new record label as a home for his darker-leaning records.
+            'Falling Up' is BURKO's latest transmission on Echoes of the Infinite — a paradox rendered in sound, where descent becomes ascent and gravity loses its grip. Leaning into the darker, dream-born tones he's carried across years of releases on ARMADA, Ultra, mau5trap, and Odd One Out, it pushes his new label deeper into its own sonic unknown.
           </p>
           <p class="body-text release-desc">
-            The title track reveals a high-energy, psy-leaning rhythm with a heavy
-            bass line, while 'Delusion' and 'Planet Nine' manage to not let up on
-            pumping energy. Perfect for your 3am journey, the EP takes you further
-            down the 'Nightrider' playlist rabbit hole that has already been home
-            to multiple of BURKO's previous releases.
+            Built on a hypnotic, psy-leaning groove and a bassline that pulls you upward as it drops, 'Falling Up' is made for the 3am hour — that weightless stretch of night where the floor disappears and the only way out is through. Out now in extended and radio edits, and already finding its home on the 'Nightrider' rabbit hole.
           </p>
 
           <div class="release-details">
@@ -319,7 +344,7 @@
             </div>
             <div class="detail-item">
               <span class="detail-label">Catalog</span>
-              <span class="detail-value">EOTI001</span>
+              <span class="detail-value">EOTI002</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Genre</span>
@@ -327,13 +352,13 @@
             </div>
             <div class="detail-item">
               <span class="detail-label">Status</span>
-              <span class="detail-value status-coming">Coming Soon</span>
+              <span class="detail-value status-out">Out Now</span>
             </div>
           </div>
 
           <div class="release-ctas">
-            <a href="#contact" class="btn-primary magnetic-btn">
-              <span class="btn-text">Get Notified</span>
+            <a href="https://open.spotify.com/artist/7emuTCeEe2djrY4K1fcKAZ" target="_blank" rel="noopener" class="btn-primary magnetic-btn">
+              <span class="btn-text">Listen Now</span>
               <span class="btn-glow"></span>
             </a>
             <a href="https://www.beatport.com" target="_blank" rel="noopener" class="btn-platform magnetic-btn">
@@ -341,12 +366,12 @@
             </a>
           </div>
 
-          <!-- Waveform visualization (decorative) -->
           <div class="waveform" aria-hidden="true">
             <div class="waveform-bars" id="waveformBars"></div>
           </div>
         </div>
       </div>
+      <!-- /release:section -->
     </div>
 
     <!-- Floating particles specific to release section -->
@@ -495,8 +520,8 @@
             <p class="contact-sub-label">Bookings &amp; Press</p>
             <p class="card-text">For artist bookings, press inquiries, and licensing, reach out directly.</p>
           </div>
-          <a href="mailto:echoesoftheinfinite.ofc@gmail.com" class="btn-ghost magnetic-btn">
-            <span class="btn-text">echoesoftheinfinite.ofc@gmail.com</span>
+          <a href="mailto:transmit@echoesoftheinfinite.live" class="btn-ghost magnetic-btn">
+            <span class="btn-text">transmit@echoesoftheinfinite.live</span>
           </a>
         </div>
       </div>
@@ -543,11 +568,15 @@
     <div class="footer-shimmer" aria-hidden="true"></div>
   </footer>
 
-  <!-- Scripts: Three.js, GSAP, then our main -->
-  <script src="https://embed.laylo.com/laylo-sdk.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  <script src="/js/main.js"></script>
+  <!-- Scripts: Three.js, GSAP, then our main.
+       All deferred so they download in parallel and never block page paint —
+       combined with the failsafe reveal in <head>, a slow/blocked CDN can no
+       longer leave the page blank. main.js already guards every gsap/THREE use
+       with typeof checks, so it degrades gracefully if a library fails to load. -->
+  <script defer src="https://embed.laylo.com/laylo-sdk.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script defer src="/js/main.js"></script>
 </body>
 </html>
