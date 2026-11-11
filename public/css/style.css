@@ -1,5 +1,5 @@
 /* =============================================================
-   ECHOES OF THE INFINITE — Style Sheet
+   ECHOES OF THE INFINITE: Style Sheet
    Brand: Black #000003 | Alabaster #F4F5EC | Blue #7170F3 | UV #55559F
 ============================================================= */
 
@@ -249,7 +249,7 @@ body.cursor-hover #cursor-ring {
   /* Explicit transparent background prevents undefined repaint state */
   background: rgba(0, 0, 3, 0);
   /* translateZ(0) promotes nav to its own GPU layer. Do NOT use
-     will-change:background — it pre-allocates a background texture that
+     will-change:background: it pre-allocates a background texture that
      Chrome re-samples every WebGL frame, causing a 1-frame black flash. */
   transform: translateZ(0);
   will-change: transform;
@@ -257,7 +257,7 @@ body.cursor-hover #cursor-ring {
               background 0.4s;
 }
 #nav.scrolled {
-  /* Solid background instead of backdrop-filter — backdrop-filter over
+  /* Solid background instead of backdrop-filter: backdrop-filter over
      a WebGL canvas causes a persistent horizontal flicker artifact in
      Chrome. The visual difference is imperceptible at this opacity. */
   background: rgba(0, 0, 3, 0.88);
@@ -431,7 +431,7 @@ body.cursor-hover #cursor-ring {
   50%       { transform: translateY(-18px) scale(1.03); }
 }
 
-/* ── Reveal animations (initial state — JS toggles) ──────── */
+/* ── Reveal animations (initial state: JS toggles) ──────── */
 .reveal-up {
   opacity: 0;
   transform: translateY(50px);
@@ -479,7 +479,7 @@ body.cursor-hover #cursor-ring {
   z-index: 0;
   /* iOS: allow page scrolling over canvas, prevent touch conflicts */
   touch-action: pan-y;
-  /* Isolate WebGL repaints to this layer — prevents bubbling up to nav */
+  /* Isolate WebGL repaints to this layer: prevents bubbling up to nav */
   will-change: transform;
 }
 
@@ -550,7 +550,7 @@ body.cursor-hover #cursor-ring {
   }
 }
 
-/* "a BURKO imprint" — GSAP owns the full lifecycle (no CSS transition) */
+/* "a BURKO imprint": GSAP owns the full lifecycle (no CSS transition) */
 .burko-imprint {
   font-family: var(--font-body);
   font-size: clamp(1rem, 1.6vw, 1.3rem);
@@ -559,7 +559,7 @@ body.cursor-hover #cursor-ring {
   letter-spacing: 0.28em;
   color: rgba(244, 245, 236, 0.60);
   margin-top: -1.8rem;
-  /* Start invisible — GSAP sets exact initial state via gsap.set() */
+  /* Start invisible: GSAP sets exact initial state via gsap.set() */
   opacity: 0;
   /* Consistent filter order so GSAP can smoothly interpolate every phase */
   filter: brightness(1) sepia(0) blur(0px);
@@ -605,7 +605,7 @@ body.cursor-hover #cursor-ring {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* "sonic unknown." accent — brand blue */
+/* "sonic unknown." accent: brand blue */
 .tagline-accent {
   color: var(--blue);
   text-shadow: 0 0 18px rgba(113, 112, 243, 0.6),
@@ -1695,14 +1695,14 @@ footer {
   border: 0;
 }
 
-/* Magnetic button wrapper — needed for JS */
+/* Magnetic button wrapper: needed for JS */
 .magnetic-btn {
   display: inline-block;
   transition: transform 0.3s var(--ease-out-expo);
   will-change: transform;
 }
 
-/* ── burkomusic.com — Artist Discovery Link (Artist section) ── */
+/* ── burkomusic.com: Artist Discovery Link (Artist section) ── */
 .burko-site-link {
   display: inline-flex;
   flex-direction: column;
@@ -1760,7 +1760,7 @@ footer {
 .footer-artist-credit span  { color: rgba(113, 112, 243, 0.6); }
 .footer-artist-credit:hover span { color: var(--blue); }
 
-/* ── Easter Egg — Cryptic Discovery ──────────────────────── */
+/* ── Easter Egg: Cryptic Discovery ──────────────────────── */
 #easter-egg-overlay {
   position: fixed;
   inset: 0;
@@ -1773,7 +1773,7 @@ footer {
 }
 #easter-egg-overlay.ee-active { display: flex; }
 
-/* Full-screen GLSL black hole canvas — same shader as hero, z below noise */
+/* Full-screen GLSL black hole canvas: same shader as hero, z below noise */
 #ee-webgl {
   position: absolute;
   inset: 0;
@@ -1784,7 +1784,7 @@ footer {
   transform-origin: center center;  /* scale-from-centre animation */
 }
 
-/* Low-res CRT noise canvas — sits on top of the BH, brief green flash */
+/* Low-res CRT noise canvas: sits on top of the BH, brief green flash */
 #ee-noise {
   position: absolute;
   inset: 0;
@@ -1796,7 +1796,7 @@ footer {
   pointer-events: none;
 }
 
-/* Text content — sits on top of the void */
+/* Text content: sits on top of the void */
 .ee-content {
   position: relative;
   z-index: 10;
@@ -1892,7 +1892,7 @@ footer {
 }
 .ee-dismiss:hover { color: rgba(244, 245, 236, 0.55); }
 
-/* ── Easter Egg — Party Screen ────────────────────────────── */
+/* ── Easter Egg: Party Screen ────────────────────────────── */
 .ee-party-eyebrow {
   font-family: var(--font-display);
   font-size: 0.7rem;
@@ -1941,7 +1941,7 @@ footer {
   letter-spacing: 0.25em;
   text-transform: uppercase;
 }
-/* Step label — small uppercase tracker shown on Screens 2 & 3 */
+/* Step label: small uppercase tracker shown on Screens 2 & 3 */
 .ee-step-label {
   font-family: var(--font-body);
   font-size: 1rem;
@@ -2043,7 +2043,7 @@ footer {
 }
 .ee-back:hover { color: rgba(244, 245, 236, 0.5); }
 
-/* iOS save button — shown instead of auto-download on iPhone/iPad */
+/* iOS save button: shown instead of auto-download on iPhone/iPad */
 .ee-save-btn {
   display: block;
   font-family: var(--font-display);
@@ -2063,7 +2063,7 @@ footer {
 }
 .ee-save-btn:active { color: rgba(244, 245, 236, 1); }
 
-/* Screen 1 hunt intro line — above the Step 2 button */
+/* Screen 1 hunt intro line: above the Step 2 button */
 .ee-step1-label {
   font-family: var(--font-body);
   font-size: 0.72rem;
@@ -2075,7 +2075,7 @@ footer {
   opacity: 0;
 }
 
-/* Step 2 — Save the File: primary CTA on Screen 1, shows for all users */
+/* Step 2: Save the File: primary CTA on Screen 1, shows for all users */
 .ee-step2-btn {
   display: block;
   font-family: var(--font-display);
@@ -2102,8 +2102,8 @@ footer {
 .ee-step2-btn:active { transform: translateY(0); box-shadow: 0 0 20px rgba(113, 112, 243, 0.5); }
 
 /* =============================================================
-   iOS — Multi-layer CSS black hole (no WebGL)
-   All animations use transform/opacity only — GPU-composited on iOS.
+   iOS: Multi-layer CSS black hole (no WebGL)
+   All animations use transform/opacity only: GPU-composited on iOS.
    Four layers: space bg · outer halo · two accretion disks · core.
 ============================================================= */
 #hero-ios-bg {
@@ -2111,7 +2111,7 @@ footer {
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  /* Deep space — subtle purple nebula behind the black hole */
+  /* Deep space: subtle purple nebula behind the black hole */
   background:
     radial-gradient(ellipse 55% 50% at 52% 46%,
       rgba(35, 10, 70,  0.92) 0%,
@@ -2122,7 +2122,7 @@ footer {
       var(--black) 70%);
 }
 
-/* ── Outer nebula halo — slow breathe, no spin (cheap) ── */
+/* ── Outer nebula halo: slow breathe, no spin (cheap) ── */
 #hero-ios-bg::before {
   content: '';
   position: absolute;
@@ -2140,7 +2140,7 @@ footer {
   will-change: opacity;
 }
 
-/* ── Secondary dim disk — wider, slower, opposite direction ── */
+/* ── Secondary dim disk: wider, slower, opposite direction ── */
 .ios-bh-disk2 {
   position: absolute;
   top: 46%; left: 52%;
@@ -2166,7 +2166,7 @@ footer {
   to   { transform: translate(-50%, -50%) rotate(-330deg) scaleY(0.18); }
 }
 
-/* ── Main bright accretion disk — fast, asymmetric (Doppler brighten) ── */
+/* ── Main bright accretion disk: fast, asymmetric (Doppler brighten) ── */
 .ios-bh-disk1 {
   position: absolute;
   top: 46%; left: 52%;
@@ -2218,7 +2218,7 @@ footer {
   50%      { opacity: 1.00; }
 }
 
-/* ── Event horizon + photon-sphere glow — kept for ::after slot ── */
+/* ── Event horizon + photon-sphere glow: kept for ::after slot ── */
 #hero-ios-bg::after {
   content: '';
   position: absolute;
@@ -2237,7 +2237,7 @@ footer {
 }
 
 /* =============================================================
-   iOS Easter Egg — CSS green flash overlay (no WebGL canvas)
+   iOS Easter Egg: CSS green flash overlay (no WebGL canvas)
 ============================================================= */
 .ee-ios {
   background: var(--black) !important;
@@ -2249,7 +2249,7 @@ footer {
   60%  { background-color: rgba(0, 10, 2, 0.98); }
   100% { background-color: rgba(0, 0, 3, 1); }
 }
-/* GPU green static layer — rendered via SVG feTurbulence filter, seed cycled by JS */
+/* GPU green static layer: rendered via SVG feTurbulence filter, seed cycled by JS */
 .ee-ios::before {
   content: '';
   position: absolute;

@@ -23,7 +23,7 @@ const r = JSON.parse(readFileSync(join(ROOT, 'release.json'), 'utf8'));
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-const shareTitle = `${r.artist} — ${r.title} | ${r.label}`;
+const shareTitle = `${r.artist}: ${r.title} | ${r.label}`;
 const imageUrl = `${SITE}${r.artwork}`;
 
 const meta = `
@@ -32,7 +32,7 @@ const meta = `
   <meta property="og:image"       content="${esc(imageUrl)}" />
   <meta property="og:image:width"  content="${r.artworkSize}" />
   <meta property="og:image:height" content="${r.artworkSize}" />
-  <meta property="og:image:alt"    content="${esc(`${r.artist} — ${r.title} (${r.label})`)}" />
+  <meta property="og:image:alt"    content="${esc(`${r.artist}: ${r.title} (${r.label})`)}" />
 
   <!-- Twitter / X card -->
   <meta name="twitter:card"        content="summary_large_image" />
@@ -69,7 +69,7 @@ const section = `
             <div class="artwork-inner" id="artworkTilt">
               <img
                 src="${esc(r.artwork)}"
-                alt="${esc(`${r.artist} — ${r.title}`)}"
+                alt="${esc(`${r.artist}: ${r.title}`)}"
                 class="artwork-img"
               />
               <div class="artwork-overlay"></div>
@@ -131,7 +131,7 @@ ${body}
 `;
 
 const replaceRegion = (src, name, content) => {
-  // The opening marker may carry a trailing "— generated ..." note. Capture the
+  // The opening marker may carry a trailing "generated ..." note. Capture the
   // indentation in front of it so the closing marker lines up with it.
   const re = new RegExp(
     `([ \\t]*)(<!-- release:${name}[^>]*-->)[\\s\\S]*?(<!-- /release:${name} -->)`,
@@ -152,13 +152,13 @@ after = replaceRegion(after, 'section', section);
 
 if (check) {
   if (before !== after) {
-    console.error('index.html is stale — run: node scripts/apply-release.mjs');
+    console.error('index.html is stale. Run: node scripts/apply-release.mjs');
     process.exit(1);
   }
   console.log('index.html matches release.json');
 } else if (before === after) {
-  console.log(`index.html already current — ${r.catalog} "${r.title}"`);
+  console.log(`index.html already current: ${r.catalog} "${r.title}"`);
 } else {
   writeFileSync(HTML, after);
-  console.log(`index.html updated — ${r.catalog} "${r.title}"`);
+  console.log(`index.html updated: ${r.catalog} "${r.title}"`);
 }
