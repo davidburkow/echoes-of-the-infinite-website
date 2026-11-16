@@ -1,21 +1,21 @@
 {
-  "catalog": "EOTI002",
-  "artist": "BURKO",
-  "title": "Falling Up",
-  "titleWords": ["Falling", "Up"],
-  "artwork": "/assets/images/falling-up.jpg",
+  "catalog": "EOTI003",
+  "artist": "Declay",
+  "title": "Dying Wish",
+  "titleWords": ["Dying", "Wish"],
+  "artwork": "/assets/images/dying-wish.jpg",
   "artworkSize": 3000,
   "label": "Echoes of the Infinite",
-  "genre": "Trip Tech",
-  "status": "out",
-  "eyebrow": "Out Now",
-  "shareDescription": "BURKO's new single 'Falling Up' is out now on Echoes of the Infinite. Sound without boundaries.",
+  "genre": "Dance",
+  "status": "coming",
+  "eyebrow": "Out November 27",
+  "shareDescription": "Declay's 'Dying Wish' lands on Echoes of the Infinite on November 27. The imprint's third transmission. Sound without boundaries.",
   "body": [
-    "'Falling Up' is BURKO's latest transmission on Echoes of the Infinite, a paradox rendered in sound where descent becomes ascent and gravity loses its grip. Leaning into the darker, dream-born tones he's carried across years of releases on ARMADA, Ultra, mau5trap, and Odd One Out, it pushes his new label deeper into its own sonic unknown.",
-    "Built on a hypnotic, psy-leaning groove and a bassline that pulls you upward as it drops, 'Falling Up' is made for the 3am hour, that weightless stretch of night where the floor disappears and the only way out is through. Out now in extended and radio edits, and already finding its home on the 'Nightrider' rabbit hole."
+    "'Dying Wish' is the third transmission on Echoes of the Infinite and the first from an artist other than BURKO. Declay arrives with a run of singles behind him across house, techno and trance, and brings that range into the darker, more emotional space the label was built to explore.",
+    "The imprint has always been about a feeling rather than a genre, and 'Dying Wish' is the first proof that the signal carries beyond its founder. Out November 27. Pre-add it now so it lands in your library the moment it drops."
   ],
   "links": {
-    "primary": { "label": "Listen Now", "href": "https://open.spotify.com/artist/7emuTCeEe2djrY4K1fcKAZ" },
+    "primary": { "label": "Pre-add on Apple Music", "href": "https://music.apple.com/us/album/dying-wish-single/6827713130" },
     "secondary": { "label": "Beatport", "href": "https://www.beatport.com" }
   }
 }
